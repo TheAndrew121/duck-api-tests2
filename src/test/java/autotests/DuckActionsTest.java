@@ -17,7 +17,7 @@ public class DuckActionsTest extends TestNGCitrusSpringSupport {
     @Test(description = "Самый простой тест - создание утки")
     @CitrusTest
     public void simplestTest(@Optional @CitrusResource TestCaseRunner runner) {
-        // Шаг 1: Создаем утку
+
         runner.$(http()
                 .client("http://localhost:2222")
                 .send()
@@ -27,7 +27,6 @@ public class DuckActionsTest extends TestNGCitrusSpringSupport {
                 .body("{\"color\":\"yellow\",\"height\":0.03,\"material\":\"rubber\",\"sound\":\"quack\",\"wingsState\":\"FIXED\"}")
         );
 
-        // Шаг 2: Ждем успешный ответ
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()
@@ -42,7 +41,6 @@ public class DuckActionsTest extends TestNGCitrusSpringSupport {
     @Test(description = "Тест кряканья утки")
     @CitrusTest
     public void quackTest(@Optional @CitrusResource TestCaseRunner runner) {
-        // Запрашиваем кряканье утки с ID=1
         runner.$(http()
                 .client("http://localhost:2222")
                 .send()
@@ -52,7 +50,6 @@ public class DuckActionsTest extends TestNGCitrusSpringSupport {
                 .queryParam("soundCount", "3")
         );
 
-        // Проверяем ответ
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()

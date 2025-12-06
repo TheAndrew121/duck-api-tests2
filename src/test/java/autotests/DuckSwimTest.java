@@ -16,7 +16,7 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
     @CitrusTest
     public void testSwimExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
 
-        // Запрашиваем плавание
+
         runner.$(http()
                 .client("http://localhost:2222")
                 .send()
@@ -24,7 +24,6 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
                 .queryParam("id", "14")
         );
 
-        // Проверяем ответ
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()
@@ -47,7 +46,6 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
                 .queryParam("id", "546349")
         );
 
-        // Проверяем ответ (ожидаем ошибку)
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()

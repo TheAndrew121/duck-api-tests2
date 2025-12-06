@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckQuackTest extends TestNGCitrusSpringSupport {
-
+    // TODO: SHIFT-AQA-2
     @Test(description = "Корректный нечётный id, корректный звук")
     @CitrusTest
     public void testQuackOddId(@Optional @CitrusResource TestCaseRunner runner) {

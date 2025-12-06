@@ -8,20 +8,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
-import static com.consol.citrus.actions.EchoAction.Builder.echo;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
 
     // тесты на /api/duck/action/properties
-
+    // TODO: SHIFT-AQA-1
     @Test(description = "Получение свойств утки с четным ID и material = wood")
     @CitrusTest
     public void testGetPropertiesEvenIdWood(@Optional @CitrusResource TestCaseRunner runner) {
 
-        // createDuck(runner, "yellow", 0.1, "wood", "quack", "ACTIVE");
-
-        // Получаем характеристики
         runner.$(http()
                 .client("http://localhost:2222")
                 .send()
@@ -29,7 +25,6 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
                 .queryParam("id", "14")  // существующий четный ID
         );
 
-        // Проверяем ответ
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()
@@ -45,8 +40,6 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
     @Test(description = "Получение свойств утки с нечетным ID и material = rubber")
     @CitrusTest
     public void testGetPropertiesOddIdRubber(@Optional @CitrusResource TestCaseRunner runner) {
-
-        // createDuck(runner, "red", 0.2, "rubber", "quack", "ACTIVE");
 
         // Получаем характеристики
         runner.$(http()
@@ -67,28 +60,4 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
         );
     }
 
-
-    /*
-    private void createDuck(TestCaseRunner runner, String color, double height, String material, String sound, String wingsState) {
-        runner.$(http()
-                .client("http://localhost:2222")
-                .send()
-                .post("/api/duck/create")
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(String.format(
-                        "{\"color\":\"%s\",\"height\":%s,\"material\":\"%s\",\"sound\":\"%s\",\"wingsState\":\"%s\"}",
-                        color, height, material, sound, wingsState))
-        );
-
-        // Проверяем, что утка создана
-        runner.$(http()
-                .client("http://localhost:2222")
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        );
-    }
-     */
 }

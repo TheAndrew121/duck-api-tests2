@@ -26,7 +26,6 @@ public class DuckCreateTest extends TestNGCitrusSpringSupport {
                 .body("{\"color\":\"yellow\",\"height\":0.121,\"material\":\"rubber\",\"sound\":\"quack\",\"wingsState\":\"ACTIVE\"}")
         );
 
-        // Проверяем ответ, игнорируя поле id (оно генерируется сервером)
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()
