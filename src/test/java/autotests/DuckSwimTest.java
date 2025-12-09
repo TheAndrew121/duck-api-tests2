@@ -1,43 +1,39 @@
 package autotests;
 
-import autotests.common.BaseDuckTest;
+import autotests.clients.DuckClient;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
-import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import org.springframework.http.HttpStatus;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
-public class DuckSwimTest extends TestNGCitrusSpringSupport {
-
+public class DuckSwimTest extends DuckClient {
+    // TODO: SHIFT-AQA-4
     @Test(description = "Существующий id")
     @CitrusTest
     public void testSwimExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
+        String duckId = createDuckAndExtractId(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
-        String duckId = BaseDuckTest.createRubberDuck(runner);
+        swimDuck(runner, duckId);
 
-        BaseDuckTest.swimDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
 
-        // ожидаем NOT_FOUND, чтобы тест был зелёным, хотя утка существует и должна лететь
-        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
-
-        BaseDuckTest.deleteDuck(runner, duckId);
+        deleteDuck(runner, duckId);
     }
 
     @Test(description = "Несуществующий id")
     @CitrusTest
     public void testSwimNonExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
-
         runner.$(http()
-                .client("http://localhost:2222")
+                .client(duckService)
                 .send()
                 .get("/api/duck/action/swim")
-                .queryParam("id", "546349")
+                .queryParam("id", "-1")
         );
 
-        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
+        validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
     }
 }
