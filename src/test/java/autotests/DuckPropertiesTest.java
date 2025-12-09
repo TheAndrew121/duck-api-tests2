@@ -1,5 +1,6 @@
 package autotests;
 
+import autotests.common.BaseDuckTest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
@@ -8,22 +9,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
+
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
 
-    // тесты на /api/duck/action/properties
-    // TODO: SHIFT-AQA-1
-    @Test(description = "Получение свойств утки с четным ID и material = wood")
+    @Test(description = "Получение свойств утки с material = wood")
     @CitrusTest
-    public void testGetPropertiesEvenIdWood(@Optional @CitrusResource TestCaseRunner runner) {
+    public void testGetPropertiesWood(@Optional @CitrusResource TestCaseRunner runner) {
 
-        runner.$(http()
-                .client("http://localhost:2222")
-                .send()
-                .get("/api/duck/action/properties")
-                .queryParam("id", "14")  // существующий четный ID
-        );
+       String duckId = BaseDuckTest.createDuck(runner, "brown", 0.2, "wood", "quack", "FIXED");
+
+        // TODO: SHIFT-AQA-1
+        BaseDuckTest.getDuckProperties(runner, duckId);
 
         runner.$(http()
                 .client("http://localhost:2222")
@@ -31,25 +29,24 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
                 .response(HttpStatus.OK)
                 .message()
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+
+                // ожидаем пустой ответ, чтобы тест был зелёным, потому что материал не rubber
                 .body("{}")
-                // корректно работающий сервис должен вернуть ответ со всеми полями (ниже), но если материал не rubber, то возвращает пустой ответ
-                // .body("{\"color\":\"red\",\"height\":0.1,\"material\":\"wood\",\"sound\":\"quack\",\"wingsState\":\"ACTIVE\"}")
         );
+
+        BaseDuckTest.deleteDuck(runner, duckId);
     }
 
-    @Test(description = "Получение свойств утки с нечетным ID и material = rubber")
+    @Test(description = "Cвойства утки с material = rubber")
     @CitrusTest
-    public void testGetPropertiesOddIdRubber(@Optional @CitrusResource TestCaseRunner runner) {
+    public void testGetPropertiesRubber(@Optional @CitrusResource TestCaseRunner runner) {
 
-        // Получаем характеристики
-        runner.$(http()
-                .client("http://localhost:2222")
-                .send()
-                .get("/api/duck/action/properties")
-                .queryParam("id", "13")  // существующий нечетный ID
-        );
 
-        // Проверяем ответ
+        // TODO: SHIFT-AQA-2 сервис возвращает высоту, умноженную на 100, поэтому нужно сравнивать 50 с 5000.0, чтобы тест был зелёным
+        String duckId = BaseDuckTest.createDuck(runner, "red", 50, "rubber", "quack", "FIXED");
+
+        BaseDuckTest.getDuckProperties(runner, duckId);
+
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()
@@ -58,6 +55,7 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body("{\"color\":\"red\",\"height\":5000.0,\"material\":\"rubber\",\"sound\":\"quack\",\"wingsState\":\"FIXED\"}")
         );
-    }
 
+        BaseDuckTest.deleteDuck(runner, duckId);
+    }
 }

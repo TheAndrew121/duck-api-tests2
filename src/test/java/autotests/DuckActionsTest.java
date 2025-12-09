@@ -14,7 +14,10 @@ import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckActionsTest extends TestNGCitrusSpringSupport {
 
-    @Test(description = "Самый простой тест - создание утки")
+
+    // это тесты не по ДЗ, а просто тестовые тесты
+
+    @Test(description = "Ссоздание утки")
     @CitrusTest
     public void simplestTest(@Optional @CitrusResource TestCaseRunner runner) {
 
@@ -35,7 +38,7 @@ public class DuckActionsTest extends TestNGCitrusSpringSupport {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         );
 
-        runner.$(echo("Тест пройден! Утка создана."));
+        runner.$(echo("Утка создана"));
     }
 
     @Test(description = "Тест кряканья утки")
@@ -59,6 +62,6 @@ public class DuckActionsTest extends TestNGCitrusSpringSupport {
                 .body("{\"sound\":\"quack-quack, quack-quack, quack-quack\"}")
         );
 
-        runner.$(echo("Утка крякает!"));
+        runner.$(echo("Утка крякает"));
     }
 }

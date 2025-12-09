@@ -1,13 +1,14 @@
 package autotests;
 
+import autotests.common.BaseDuckTest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
+
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckSwimTest extends TestNGCitrusSpringSupport {
@@ -16,23 +17,14 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
     @CitrusTest
     public void testSwimExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
 
+        String duckId = BaseDuckTest.createRubberDuck(runner);
 
-        runner.$(http()
-                .client("http://localhost:2222")
-                .send()
-                .get("/api/duck/action/swim")
-                .queryParam("id", "14")
-        );
+        BaseDuckTest.swimDuck(runner, duckId);
 
-        runner.$(http()
-                .client("http://localhost:2222")
-                .receive()
-                //.response(HttpStatus.NOT_FOUND) должно быть OK, если бы сервис работал корректно
-                .response(HttpStatus.NOT_FOUND)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"message\":\"Paws are not found ((((\"}")
-        );
+        // ожидаем NOT_FOUND, чтобы тест был зелёным, хотя утка существует и должна лететь
+        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
+
+        BaseDuckTest.deleteDuck(runner, duckId);
     }
 
     @Test(description = "Несуществующий id")
@@ -46,14 +38,6 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
                 .queryParam("id", "546349")
         );
 
-        runner.$(http()
-                .client("http://localhost:2222")
-                .receive()
-                .response(HttpStatus.NOT_FOUND)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"message\":\"Paws are not found ((((\"}")
-        );
+        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
     }
-
 }
