@@ -54,15 +54,6 @@ public class BaseTest extends TestNGCitrusSpringSupport {
                 .delete("/api/duck/delete")
                 .queryParam("id", duckId)
         );
-
-        runner.$(http()
-                .client(duckService)
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"message\":\"Duck is deleted\"}")
-        );
     }
 
     public void validateResponse(@CitrusResource TestCaseRunner runner, HttpStatus status, String expectedBody) {

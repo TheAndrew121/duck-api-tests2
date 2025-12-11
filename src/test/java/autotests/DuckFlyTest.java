@@ -20,6 +20,8 @@ public class DuckFlyTest extends DuckClient {
         validateResponseWithMessage(runner, HttpStatus.OK, "I am flying :)");
 
         deleteDuck(runner, duckId);
+
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 
     @Test(description = "Существующий id со FIXED крыльями")
@@ -32,6 +34,7 @@ public class DuckFlyTest extends DuckClient {
         validateResponseWithMessage(runner, HttpStatus.OK, "I can not fly :C");
 
         deleteDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 
     @Test(description = "Существующий id с UNDEFINED крыльями")
@@ -44,5 +47,6 @@ public class DuckFlyTest extends DuckClient {
         validateResponseWithMessage(runner, HttpStatus.OK, "Wings are not detected :(");
 
         deleteDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 }

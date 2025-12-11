@@ -10,8 +10,9 @@ import org.testng.annotations.Test;
 
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
+// TODO: SHIFT-AQA-4
 public class DuckSwimTest extends DuckClient {
-    // TODO: SHIFT-AQA-4
+
     @Test(description = "Существующий id")
     @CitrusTest
     public void testSwimExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
@@ -19,9 +20,11 @@ public class DuckSwimTest extends DuckClient {
 
         swimDuck(runner, duckId);
 
+        // ожидаем NOT_FOUND, Paws are not found ((((, чтобы тест был зелёный
         validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
 
         deleteDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 
     @Test(description = "Несуществующий id")

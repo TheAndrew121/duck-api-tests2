@@ -30,6 +30,7 @@ public class DuckUpdateTest extends DuckClient {
         );
 
         deleteDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 
     @Test(description = "Изменить цвет и звук уточки")
@@ -49,5 +50,6 @@ public class DuckUpdateTest extends DuckClient {
         );
 
         deleteDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 }

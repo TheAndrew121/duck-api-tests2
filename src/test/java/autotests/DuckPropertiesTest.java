@@ -30,6 +30,7 @@ public class DuckPropertiesTest extends DuckClient {
         );
 
         deleteDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 
     @Test(description = "Cвойства утки с material = rubber")
@@ -49,5 +50,6 @@ public class DuckPropertiesTest extends DuckClient {
         );
 
         deleteDuck(runner, duckId);
+        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
     }
 }

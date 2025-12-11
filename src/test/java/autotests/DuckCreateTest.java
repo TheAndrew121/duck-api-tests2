@@ -16,14 +16,9 @@ public class DuckCreateTest extends DuckClient {
     @Test(description = "Создать утку с material = rubber")
     @CitrusTest
     public void testCreateRubberDuck(@Optional @CitrusResource TestCaseRunner runner) {
-        runner.$(http()
-                .client(duckService)
-                .send()
-                .post("/api/duck/create")
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"color\":\"yellow\",\"height\":0.121,\"material\":\"rubber\",\"sound\":\"quack\",\"wingsState\":\"ACTIVE\"}")
-        );
+
+
+        createDuck(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
         runner.$(http()
                 .client(duckService)
@@ -38,14 +33,8 @@ public class DuckCreateTest extends DuckClient {
     @Test(description = "Создать утку с material = wood")
     @CitrusTest
     public void testCreateWoodDuck(@Optional @CitrusResource TestCaseRunner runner) {
-        runner.$(http()
-                .client(duckService)
-                .send()
-                .post("/api/duck/create")
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"color\":\"brown\",\"height\":0.2,\"material\":\"wood\",\"sound\":\"quack\",\"wingsState\":\"FIXED\"}")
-        );
+
+        createDuck(runner, "brown", 0.2, "wood", "quack", "FIXED");
 
         runner.$(http()
                 .client(duckService)
