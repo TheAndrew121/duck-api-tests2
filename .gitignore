@@ -16,6 +16,8 @@ build/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+.idea/misc.xml
+target/citrus-reports
 
 ### Eclipse ###
 .apt_generated

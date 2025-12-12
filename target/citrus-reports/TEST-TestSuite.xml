@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="TestSuite" time="0.0" tests="2" errors="0" skipped="0" failures="0">
-    <testcase name="DuckQuackTest.testQuackEvenId" classname="autotests.DuckQuackTest" time="0.0"/>
-    <testcase name="DuckQuackTest.testQuackOddId" classname="autotests.DuckQuackTest" time="0.0"/>
+    <testcase name="DuckUpdateTest.testUpdateColorAndHeight" classname="autotests.DuckUpdateTest" time="0.0"/>
+    <testcase name="DuckUpdateTest.testUpdateColorAndSound" classname="autotests.DuckUpdateTest" time="0.0"/>
 </testsuite>

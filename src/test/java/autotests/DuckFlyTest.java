@@ -1,6 +1,8 @@
 package autotests;
 
 import autotests.clients.DuckClient;
+import autotests.payloads.CreateRequest;
+import autotests.payloads.FlyResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
@@ -10,43 +12,48 @@ import org.testng.annotations.Test;
 
 public class DuckFlyTest extends DuckClient {
 
-    @Test(description = "Существующий id с ACTIVE крыльями")
+    @Test(description = "Существующий id с ACTIVE крыльями (валидация через строку)")
     @CitrusTest
     public void testFlyWithActiveWings(@Optional @CitrusResource TestCaseRunner runner) {
-        String duckId = createDuckAndExtractId(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = createDuckAndExtractId(runner, req);
 
         flyDuck(runner, duckId);
 
-        validateResponseWithMessage(runner, HttpStatus.OK, "I am flying :)");
+        // валидация через строку
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"I am flying :)\"}");
 
         deleteDuck(runner, duckId);
-
-        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    @Test(description = "Существующий id со FIXED крыльями")
+    @Test(description = "Существующий id со FIXED крыльями (валидация через ресурс)")
     @CitrusTest
     public void testFlyWithFixedWings(@Optional @CitrusResource TestCaseRunner runner) {
-        String duckId = createDuckAndExtractId(runner, "brown", 0.2, "wood", "quack", "FIXED");
+
+        CreateRequest req = new CreateRequest("brown", 0.2, "wood", "quack", "FIXED");
+        String duckId = createDuckAndExtractId(runner, req);
 
         flyDuck(runner, duckId);
 
-        validateResponseWithMessage(runner, HttpStatus.OK, "I can not fly :C");
+        validateResponseFromResource(runner, HttpStatus.OK, "DuckFlyTest/flyFixedResponse.json");
 
         deleteDuck(runner, duckId);
-        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    @Test(description = "Существующий id с UNDEFINED крыльями")
+    @Test(description = "Существующий id с UNDEFINED крыльями (валидация через payload-модель)")
     @CitrusTest
     public void testFlyWithUndefinedWings(@Optional @CitrusResource TestCaseRunner runner) {
-        String duckId = createDuckAndExtractId(runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "UNDEFINED");
+        String duckId = createDuckAndExtractId(runner, req);
 
         flyDuck(runner, duckId);
 
-        validateResponseWithMessage(runner, HttpStatus.OK, "Wings are not detected :(");
+        FlyResponse expectedResponse = new FlyResponse("Wings are not detected :(");
+        validateResponseFromPayload(runner, HttpStatus.OK, expectedResponse);
 
         deleteDuck(runner, duckId);
-        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 }

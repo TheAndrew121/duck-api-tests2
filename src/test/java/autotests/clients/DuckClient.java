@@ -1,19 +1,48 @@
 package autotests.clients;
 
 import autotests.common.BaseTest;
+import autotests.payloads.CreateRequest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckClient extends BaseTest {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // новый createDuck принимает модель запроса и отправляет json body.
+    public void createDuck(@CitrusResource TestCaseRunner runner, CreateRequest request) {
+        try {
+            String json = objectMapper.writeValueAsString(request);
+            runner.$(http()
+                    .client(duckService)
+                    .send()
+                    .post("/api/duck/create")
+                    .message()
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .body(json)
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize DuckCreateRequest", e);
+        }
+    }
+
+    // метод из прошлой домашки пока оставлю
     public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, String color, double height,
                                          String material, String sound, String wingsState) {
         createDuck(runner, color, height, material, sound, wingsState);
         return extractIdFromResponse(runner);
+    }
+
+    public void createDuck(@CitrusResource TestCaseRunner runner, String color, double height, String material,
+                           String sound, String wingsState) {
+        super.createDuck(runner, color, height, material, sound, wingsState);
     }
 
     public void flyDuck(@CitrusResource TestCaseRunner runner, String duckId) {
@@ -69,40 +98,51 @@ public class DuckClient extends BaseTest {
         );
     }
 
-    // как вариант можно использовать в тестах на  обновление и на запрос свойств
-    /*
-    public void validateUpdateResponse(@CitrusResource TestCaseRunner runner, String duckId) {
+    public void deleteDuck(@CitrusResource TestCaseRunner runner, String duckId) {
+        super.deleteDuck(runner, duckId);
+    }
+
+
+
+    // новые методы для 2 части 29 домашки
+
+    // 1) валидация через String
+    public void validateResponseFromString(@CitrusResource TestCaseRunner runner, HttpStatus status, String expectedBody) {
         runner.$(http()
                 .client(duckService)
                 .receive()
-                .response(HttpStatus.OK)
+                .response(status)
                 .message()
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(String.format("{\"message\":\"Duck with id = %s is updated\"}", duckId))
+                .body(expectedBody)
         );
     }
 
-    public void validateEmptyPropertiesResponse(@CitrusResource TestCaseRunner runner) {
+    // 2) валидация через ресурс
+    public void validateResponseFromResource(@CitrusResource TestCaseRunner runner, HttpStatus status, String resourcePath) {
         runner.$(http()
                 .client(duckService)
                 .receive()
-                .response(HttpStatus.OK)
+                .response(status)
                 .message()
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{}")
+                .body(new ClassPathResource(resourcePath))
         );
     }
 
-    public void validateRubberPropertiesResponse(@CitrusResource TestCaseRunner runner) {
-        runner.$(http()
-                .client(duckService)
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"color\":\"red\",\"height\":5000.0,\"material\":\"rubber\",\"sound\":\"quack\",\"wingsState\":\"FIXED\"}")
-        );
+    // 3) валидация через payload-модель: сериализуем модель в json и сравниваем как строку.
+    public void validateResponseFromPayload(@CitrusResource TestCaseRunner runner, HttpStatus status, Object expectedPayload) {
+        try {
+            String json = objectMapper.writeValueAsString(expectedPayload);
+            validateResponseFromString(runner, status, json);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize expected payload", e);
+        }
     }
 
-     */
+    // для создания утки и получения id через модель запроса
+    public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, CreateRequest request) {
+        createDuck(runner, request);
+        return extractIdFromResponse(runner);
+    }
 }

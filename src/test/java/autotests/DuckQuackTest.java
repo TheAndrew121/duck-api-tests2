@@ -1,66 +1,85 @@
 package autotests;
 
 import autotests.clients.DuckClient;
+import autotests.payloads.CreateRequest;
+import autotests.payloads.QuackResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.context.TestContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
 import static com.consol.citrus.dsl.JsonPathSupport.jsonPath;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
-
-// этот тест заработал после того, как посоветовался с командой
-
-// TODO: SHIFT-AQA-3
+// TODO: SHIFT-AQA-2
 public class DuckQuackTest extends DuckClient {
     private static final int REPETITION_COUNT = 2;
     private static final int SOUND_COUNT = 2;
 
-    @Test(description = "Корректный нечётный id, корректный звук")
+    @Test(description = "Корректный нечётный id, корректный звук (валидация через ресурс)")
     @CitrusTest
     public void quackDuckWithOddId(@Optional @CitrusResource TestCaseRunner runner, @Optional @CitrusResource TestContext context) {
         String quackSound = "quack";
         String[] duckData = createDuckWithIdParity(runner, context, false, quackSound);
         quackDuck(runner, duckData[0], REPETITION_COUNT, SOUND_COUNT);
-        validateQuackResponse(runner, duckData[1], REPETITION_COUNT, SOUND_COUNT);
+
+        validateResponseFromResource(runner, HttpStatus.OK, "DuckQuackTest/quackOddResponse.json");
+
         deleteDuck(runner, duckData[0]);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    @Test(description = "Корректный чётный id, корректный звук")
+    @Test(description = "Корректный чётный id, корректный звук (валидация через строку)")
     @CitrusTest
     public void quackDuckWithEvenId(@Optional @CitrusResource TestCaseRunner runner, @Optional @CitrusResource TestContext context) {
         String quackSound = "moo";
         String[] duckData = createDuckWithIdParity(runner, context, true, quackSound);
         quackDuck(runner, duckData[0], REPETITION_COUNT, SOUND_COUNT);
-        validateQuackResponse(runner, duckData[1], REPETITION_COUNT, SOUND_COUNT);
+
+        String expectedSound = buildExpectedSoundMessage(quackSound, REPETITION_COUNT, SOUND_COUNT);
+        String expectedResponse = String.format("{\"sound\":\"%s\"}", expectedSound);
+        validateResponseFromString(runner, HttpStatus.OK, expectedResponse);
+
         deleteDuck(runner, duckData[0]);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    private String[] createDuckWithIdParity(@CitrusResource TestCaseRunner runner, @CitrusResource TestContext context, boolean shouldBeEven, String quackSound)
-    {
+    @Test(description = "Корректный id, проверка через payload-модель")
+    @CitrusTest
+    public void quackDuckWithPayloadValidation(@Optional @CitrusResource TestCaseRunner runner, @Optional @CitrusResource TestContext context) {
+        String quackSound = "quack";
+        String[] duckData = createDuckWithIdParity(runner, context, false, quackSound);
+        quackDuck(runner, duckData[0], REPETITION_COUNT, SOUND_COUNT);
+
+        // валидация через payload-модель
+        String expectedSound = buildExpectedSoundMessage(quackSound, REPETITION_COUNT, SOUND_COUNT);
+        QuackResponse expectedResponse = new QuackResponse(expectedSound);
+        validateResponseFromPayload(runner, HttpStatus.OK, expectedResponse);
+
+        deleteDuck(runner, duckData[0]);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
+    }
+
+    private String[] createDuckWithIdParity(@CitrusResource TestCaseRunner runner, @CitrusResource TestContext context,
+                                            boolean shouldBeEven, String quackSound) {
         String duckId;
         boolean duckCreatedWithDesiredParity;
 
         do {
-            // создаём утку и получаем ID как переменную Citrus
-            createDuck(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+            CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", quackSound, "ACTIVE");
+            createDuck(runner, req);
 
-            // получаем ID из ответа
             runner.$(http()
                     .client(duckService)
                     .receive()
                     .response(HttpStatus.OK)
                     .message()
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .extract(jsonPath().expression("$.id", "currentDuckId"))
             );
 
-            // фактическое значение ID из контекста
             duckId = context.getVariable("currentDuckId");
             duckCreatedWithDesiredParity = isEvenId(duckId) == shouldBeEven;
 
@@ -96,19 +115,5 @@ public class DuckQuackTest extends DuckClient {
         }
 
         return expectedMessageBuilder.toString();
-    }
-
-    private void validateQuackResponse(@CitrusResource TestCaseRunner runner, String duckSound, int repetitionCount, int soundCount) {
-        String expectedSound = buildExpectedSoundMessage(duckSound, repetitionCount, soundCount);
-        String expectedResponse = String.format("{\"sound\":\"%s\"}", expectedSound);
-
-        runner.$(http()
-                .client(duckService)
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(expectedResponse)
-        );
     }
 }

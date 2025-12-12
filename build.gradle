@@ -16,11 +16,13 @@ dependencies {
     testImplementation group: 'com.consol.citrus', name: 'citrus-http', version: '3.4.0'
     testImplementation group: 'com.consol.citrus', name: 'citrus-validation-json', version: '3.4.0'
     testImplementation group: 'org.slf4j', name: 'slf4j-reload4j', version: '2.0.7'
-    testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.28'
+    testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.30'
     testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.28'
     testImplementation group: 'com.consol.citrus', name: 'citrus-java-dsl', version: '3.4.0'
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.2'
 
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.15.2'
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.15.2'
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.15.2'
 }
 
 test {
