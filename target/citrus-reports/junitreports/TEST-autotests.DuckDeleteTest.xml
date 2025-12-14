@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="autotests.DuckDeleteTest" time="0.0" tests="3" errors="0" skipped="0" failures="0">
-    <testcase name="DuckDeleteTest.testDeleteDuckPayloadValidation" classname="autotests.DuckDeleteTest" time="0.0"/>
-    <testcase name="DuckDeleteTest.testDeleteDuckResourceValidation" classname="autotests.DuckDeleteTest" time="0.0"/>
-    <testcase name="DuckDeleteTest.testDeleteDuckStringValidation" classname="autotests.DuckDeleteTest" time="0.0"/>
-</testsuite>

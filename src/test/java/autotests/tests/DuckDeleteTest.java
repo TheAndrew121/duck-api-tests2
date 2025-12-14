@@ -1,23 +1,39 @@
-package autotests;
+package autotests.tests;
 
 import autotests.clients.DuckClient;
-import autotests.payloads.CreateRequest;
 import autotests.payloads.DeleteResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
 import org.springframework.http.HttpStatus;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
+@Epic("Duck Controller")
+@Feature("Delete")
 public class DuckDeleteTest extends DuckClient {
+
+    // новый тест для 1 части 30 домашки
+    @Test(description = "Создание, удаление и валидация утки только через БД")
+    @CitrusTest
+    public void testDeleteDuckDataBaseOnly(@Optional @CitrusResource TestCaseRunner runner) {
+
+        String duckId = createDuckInDatabase(runner,"yellow", 0.121, "rubber", "quack", "ACTIVE");
+
+        deleteDuckFromDatabase(runner, duckId);
+
+        validateDuckNotExistsInDatabase(runner, duckId);
+
+    }
 
     @Test(description = "Удаление утки (валидация через строку)")
     @CitrusTest
     public void testDeleteDuckStringValidation(@Optional @CitrusResource TestCaseRunner runner) {
-        // класс-модель для создания утки
-        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
-        String duckId = createDuckAndExtractId(runner, req);
+
+        // создание через БД, удаление старым способом, иначе название теста не будет соответствовать самому тесту
+        String duckId = createDuckInDatabase(runner,"yellow", 0.121, "rubber", "quack", "ACTIVE");
 
         deleteDuck(runner, duckId);
 
@@ -28,8 +44,8 @@ public class DuckDeleteTest extends DuckClient {
     @CitrusTest
     public void testDeleteDuckResourceValidation(@Optional @CitrusResource TestCaseRunner runner) {
 
-        CreateRequest req = new CreateRequest("brown", 0.2, "wood", "quack", "FIXED");
-        String duckId = createDuckAndExtractId(runner, req);
+        // создание через БД, удаление старым способом, иначе название теста не будет соответствовать самому тесту
+        String duckId = createDuckInDatabase(runner,"brown", 0.2, "wood", "quack", "FIXED");
 
         deleteDuck(runner, duckId);
 
@@ -40,8 +56,8 @@ public class DuckDeleteTest extends DuckClient {
     @CitrusTest
     public void testDeleteDuckPayloadValidation(@Optional @CitrusResource TestCaseRunner runner) {
 
-        CreateRequest req = new CreateRequest("red", 50, "rubber", "quack", "FIXED");
-        String duckId = createDuckAndExtractId(runner, req);
+        // создание через БД, удаление старым способом, иначе название теста не будет соответствовать самому тесту
+        String duckId = createDuckInDatabase(runner,"red", 50, "rubber", "quack", "FIXED");
 
         deleteDuck(runner, duckId);
 

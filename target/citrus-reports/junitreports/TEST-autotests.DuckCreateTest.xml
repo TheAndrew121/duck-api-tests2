@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="autotests.DuckCreateTest" time="0.0" tests="2" errors="0" skipped="0" failures="0">
-    <testcase name="DuckCreateTest.testCreateRubberDuck" classname="autotests.DuckCreateTest" time="0.0"/>
-    <testcase name="DuckCreateTest.testCreateWoodDuck" classname="autotests.DuckCreateTest" time="0.0"/>
-</testsuite>
