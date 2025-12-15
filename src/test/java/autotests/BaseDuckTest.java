@@ -1,6 +1,8 @@
-package autotests.common;
+package autotests;
 
 import com.consol.citrus.TestCaseRunner;
+import com.consol.citrus.actions.AbstractTestAction;
+import com.consol.citrus.context.TestContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -23,7 +25,6 @@ public class BaseDuckTest {
                         color, height, material, sound, wingsState
                 ))
         );
-
         // извлечение id
         runner.$(http()
                 .client("http://localhost:2222")
@@ -53,15 +54,6 @@ public class BaseDuckTest {
                 .delete("/api/duck/delete")
                 .queryParam("id", duckId)
         );
-
-        runner.$(http()
-                .client("http://localhost:2222")
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"message\":\"Duck is deleted\"}")
-        );
     }
 
     public static void flyDuck(TestCaseRunner runner, String duckId) {
@@ -83,13 +75,14 @@ public class BaseDuckTest {
     }
 
     public static void quackDuck(TestCaseRunner runner, String duckId, int repetitionCount, int soundCount) {
-        runner.$(http()
-                .client("http://localhost:2222")
-                .send()
-                .get("/api/duck/action/quack")
-                .queryParam("id", duckId)
-                .queryParam("repetitionCount", String.valueOf(repetitionCount))
-                .queryParam("soundCount", String.valueOf(soundCount))
+        runner.$(
+                http()
+                        .client("http://localhost:2222")
+                        .send()
+                        .get("/api/duck/action/quack")
+                        .queryParam("id", duckId)
+                        .queryParam("repetitionCount", String.valueOf(repetitionCount))
+                        .queryParam("soundCount", String.valueOf(soundCount))
         );
     }
 
@@ -149,4 +142,46 @@ public class BaseDuckTest {
                 .body("{\"sound\":\"" + sound + "\"}")
         );
     }
+
+    public static void isDuckIdEven(TestCaseRunner runner) {
+        runner.run(new AbstractTestAction() {
+            @Override
+            public void doExecute(TestContext context) {
+                String duckId = context.getVariable("duckId");
+                long id = Long.parseLong(duckId);
+
+                if (id % 2 == 0) {
+                    System.out.println("Создана утка с чётным id: " + id);
+                    // Можно установить переменную для дальнейшего использования
+                    context.setVariable("duckType", "even");
+                } else {
+                    System.out.println("Создана утка с нечётным id: " + id);
+                    context.setVariable("duckType", "odd");
+                }
+            }
+        });
+    }
+
+    public static void validatePropertiesResponse(TestCaseRunner runner, String color, double originalHeight,
+                                                  String material, String sound, String wingsState) {
+        // сразу умножаем полученную высоту на 100
+        double multipliedHeight = originalHeight * 100;
+
+        String expectedBody = String.format(
+                "{\"color\":\"%s\",\"height\":%s,\"material\":\"%s\",\"sound\":\"%s\",\"wingsState\":\"%s\"}",
+                color, multipliedHeight, material, sound, wingsState
+        );
+
+        runner.$(http()
+                .client("http://localhost:2222")
+                .receive()
+                .response(HttpStatus.OK)
+                .message()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(expectedBody)
+        );
+    }
+
+
+
 }

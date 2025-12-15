@@ -1,5 +1,6 @@
-package autotests;
+package autotests.Tests;
 
+import autotests.BaseDuckTest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
@@ -8,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
-import autotests.common.BaseDuckTest;
+
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckUpdateTest extends TestNGCitrusSpringSupport {

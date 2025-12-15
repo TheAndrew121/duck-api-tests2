@@ -1,6 +1,6 @@
-package autotests;
+package autotests.Tests;
 
-import autotests.common.BaseDuckTest;
+import autotests.BaseDuckTest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;

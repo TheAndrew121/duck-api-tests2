@@ -1,6 +1,6 @@
-package autotests;
+package autotests.Tests;
 
-import autotests.common.BaseDuckTest;
+import autotests.BaseDuckTest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
@@ -9,8 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
-import static com.consol.citrus.http.actions.HttpActionBuilder.http;
-
+// TODO: SHIFT-AQA-2
 public class DuckSwimTest extends TestNGCitrusSpringSupport {
 
     @Test(description = "Существующий id")
@@ -31,13 +30,11 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
     @CitrusTest
     public void testSwimNonExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
 
-        runner.$(http()
-                .client("http://localhost:2222")
-                .send()
-                .get("/api/duck/action/swim")
-                .queryParam("id", "546349")
-        );
+        String duckId = BaseDuckTest.createRubberDuck(runner);
 
+        BaseDuckTest.deleteDuck(runner, duckId);
+
+        BaseDuckTest.swimDuck(runner, duckId);
         BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
     }
 }

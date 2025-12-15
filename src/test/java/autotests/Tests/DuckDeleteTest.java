@@ -1,6 +1,6 @@
-package autotests;
+package autotests.Tests;
 
-import autotests.common.BaseDuckTest;
+import autotests.BaseDuckTest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
@@ -17,5 +17,8 @@ public class DuckDeleteTest extends TestNGCitrusSpringSupport {
         String duckId = BaseDuckTest.createRubberDuck(runner);
 
         BaseDuckTest.deleteDuck(runner, duckId);
+
+        // добавлена проверка на удаление отдельным методом
+        BaseDuckTest.validateResponse(runner, "{\"message\":\"Duck is deleted\"}");
     }
 }
