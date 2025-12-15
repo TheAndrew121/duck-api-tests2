@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="autotests.DuckFlyTest" time="0.0" tests="3" errors="0" skipped="0" failures="0">
-    <testcase name="DuckFlyTest.testFlyWithActiveWings" classname="autotests.DuckFlyTest" time="0.0"/>
-    <testcase name="DuckFlyTest.testFlyWithFixedWings" classname="autotests.DuckFlyTest" time="0.0"/>
-    <testcase name="DuckFlyTest.testFlyWithUndefinedWings" classname="autotests.DuckFlyTest" time="0.0"/>
-</testsuite>

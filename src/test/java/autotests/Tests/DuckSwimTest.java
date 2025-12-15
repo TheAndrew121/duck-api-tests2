@@ -1,4 +1,4 @@
-package autotests;
+package autotests.Tests;
 
 import autotests.clients.DuckClient;
 import autotests.payloads.CreateRequest;
@@ -9,8 +9,6 @@ import com.consol.citrus.annotations.CitrusTest;
 import org.springframework.http.HttpStatus;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
-
-import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 // TODO: SHIFT-AQA-3
 public class DuckSwimTest extends DuckClient {
@@ -32,13 +30,14 @@ public class DuckSwimTest extends DuckClient {
     @Test(description = "Несуществующий id (валидация через payload-модель)")
     @CitrusTest
     public void testSwimNonExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
-        runner.$(http()
-                .client(duckService)
-                .send()
-                .get("/api/duck/action/swim")
-                .queryParam("id", "-1")
-        );
 
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = createDuckAndExtractId(runner, req);
+
+        // удаляем, потом плаваем, чтобы утка была точно несуществующей
+        deleteDuck(runner, duckId);
+
+        swimDuck(runner, duckId);
         // Валидация через payload-модель
         SwimResponse expectedResponse = new SwimResponse("Paws are not found ((((");
         validateResponseFromPayload(runner, HttpStatus.NOT_FOUND, expectedResponse);

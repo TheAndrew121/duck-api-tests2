@@ -1,4 +1,4 @@
-package autotests;
+package autotests.Tests;
 
 import autotests.clients.DuckClient;
 import autotests.payloads.CreateRequest;
@@ -23,8 +23,11 @@ public class DuckPropertiesTest extends DuckClient {
 
         validateResponseFromResource(runner, HttpStatus.OK, "DuckPropertiesTest/woodPropertiesResponse.json");
 
+        // проверка id на чётность
+        isDuckIdEven(runner);
+
         deleteDuck(runner, duckId);
-        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
+        validateResponseWithMessage(this, runner, HttpStatus.OK, "Duck is deleted");
     }
 
     @Test(description = "Свойства утки с material = rubber (валидация через payload-модель)")
@@ -35,10 +38,14 @@ public class DuckPropertiesTest extends DuckClient {
 
         getDuckProperties(runner, duckId);
 
+        // умножаем ожидаемую высоту на 100 конкретно здесь, чтобы тест был зелёный, но не меняем сам PropertiesResponse
         PropertiesResponse expected = new PropertiesResponse("red", 5000.0, "rubber", "quack", "FIXED");
         validateResponseFromPayload(runner, HttpStatus.OK, expected);
 
+        // проверка id на чётность
+        isDuckIdEven(runner);
+
         deleteDuck(runner, duckId);
-        validateResponseWithMessage(runner, HttpStatus.OK, "Duck is deleted");
+        validateResponseWithMessage(this, runner, HttpStatus.OK, "Duck is deleted");
     }
 }

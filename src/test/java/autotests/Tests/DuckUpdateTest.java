@@ -1,4 +1,4 @@
-package autotests;
+package autotests.Tests;
 
 import autotests.clients.DuckClient;
 import autotests.payloads.CreateRequest;
