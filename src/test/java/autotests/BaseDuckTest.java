@@ -50,7 +50,7 @@ public class BaseDuckTest {
 
     // специальной метод для создания утки с определённым чётным/нечётным id
     public static String createDuckWithCertainID(TestCaseRunner runner, TestContext context,
-                                                 boolean shouldBeEven, String sound) {
+                                                 boolean shouldBeEven) {
         for (int attempt = 1; attempt <= 2; attempt++) {
             BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
             BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
