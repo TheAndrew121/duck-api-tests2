@@ -199,5 +199,4 @@ public class DuckClient extends BaseTest {
 
     };
 
-
 }
