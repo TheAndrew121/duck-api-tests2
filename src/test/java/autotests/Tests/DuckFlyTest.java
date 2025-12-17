@@ -14,7 +14,9 @@ public class DuckFlyTest extends TestNGCitrusSpringSupport {
     @Test(description = "Существующий id с ACTIVE крыльями")
     @CitrusTest
     public void testFlyWithActiveWings(@Optional @CitrusResource TestCaseRunner runner) {
-        String duckId = BaseDuckTest.createRubberDuck(runner);
+
+        BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
         BaseDuckTest.flyDuck(runner, duckId);
 
@@ -26,7 +28,9 @@ public class DuckFlyTest extends TestNGCitrusSpringSupport {
     @Test(description = "Существующий id со FIXED крыльями")
     @CitrusTest
     public void testFlyWithFixedWings(@Optional @CitrusResource TestCaseRunner runner) {
-        String duckId = BaseDuckTest.createWoodDuck(runner);
+
+        BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "FIXED");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "yellow", 0.121, "rubber", "quack", "FIXED");
 
         BaseDuckTest.flyDuck(runner, duckId);
 
@@ -38,8 +42,9 @@ public class DuckFlyTest extends TestNGCitrusSpringSupport {
     @Test(description = "Существующий id с UNDEFINED крыльями")
     @CitrusTest
     public void testFlyWithUndefinedWings(@Optional @CitrusResource TestCaseRunner runner) {
-        // Создаем утку с UNDEFINED крыльями
-        String duckId = BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
+
+        BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
 
         // Тестируем полет
         BaseDuckTest.flyDuck(runner, duckId);

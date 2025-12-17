@@ -16,7 +16,8 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
     @CitrusTest
     public void testSwimExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = BaseDuckTest.createRubberDuck(runner);
+        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
 
         BaseDuckTest.swimDuck(runner, duckId);
 
@@ -30,7 +31,8 @@ public class DuckSwimTest extends TestNGCitrusSpringSupport {
     @CitrusTest
     public void testSwimNonExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = BaseDuckTest.createRubberDuck(runner);
+        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
 
         BaseDuckTest.deleteDuck(runner, duckId);
 

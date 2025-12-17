@@ -12,7 +12,8 @@ import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class BaseDuckTest {
 
-    public static String createDuck(TestCaseRunner runner, String color, double height, String material, String sound, String wingsState) {
+    // Метод только для создания утки без валидации
+    public static void createDuck(TestCaseRunner runner, String color, double height, String material, String sound, String wingsState) {
 
         runner.$(http()
                 .client("http://localhost:2222")
@@ -25,26 +26,60 @@ public class BaseDuckTest {
                         color, height, material, sound, wingsState
                 ))
         );
-        // извлечение id
+    }
+
+    // отдельный метод для валидации ответа создания утки
+    public static String validateDuckCreation(TestCaseRunner runner, String color, double height,
+                                              String material, String sound, String wingsState) {
+
         runner.$(http()
                 .client("http://localhost:2222")
                 .receive()
                 .response(HttpStatus.OK)
                 .message()
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body("{\"id\":\"@ignore@\",\"color\":\"" + color + "\",\"height\":" + height + ",\"material\":\"" + material + "\",\"sound\":\"" + sound + "\",\"wingsState\":\"" + wingsState + "\"}")
                 .extract(jsonPath().expression("$.id", "duckId"))
+                .body(String.format(
+                        "{\"id\":${duckId},\"color\":\"%s\",\"height\":%s,\"material\":\"%s\",\"sound\":\"%s\",\"wingsState\":\"%s\"}",
+                        color, height, material, sound, wingsState
+                ))
         );
 
         return "${duckId}";
     }
 
-    public static String createRubberDuck(TestCaseRunner runner) {
-        return createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
-    }
+    // специальной метод для создания утки с определённым чётным/нечётным id
+    public static String createDuckWithCertainID(TestCaseRunner runner, TestContext context,
+                                                 boolean shouldBeEven, String sound) {
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+            BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
 
-    public static String createWoodDuck(TestCaseRunner runner) {
-        return createDuck(runner, "brown", 0.2, "wood", "quack", "FIXED");
+            // проверка id на чётность
+            runner.run(new AbstractTestAction() {
+                @Override
+                public void doExecute(TestContext ctx) {
+                    long id = Long.parseLong(ctx.getVariable("duckId"));
+                    ctx.setVariable("isIdEven", id % 2 == 0);
+                    ctx.setVariable("currentDuckId", String.valueOf(id));
+                }
+            });
+
+            boolean isEven = Boolean.parseBoolean(context.getVariable("isIdEven"));
+            String currentDuckId = context.getVariable("currentDuckId");
+
+            if (isEven == shouldBeEven) {
+                System.out.println("Создана утка с " + (shouldBeEven ? "чётным" : "нечётным") +
+                        " ID: " + currentDuckId + " (попытка: " + attempt + ")");
+                return currentDuckId;
+            }
+
+            deleteDuck(runner, currentDuckId);
+            System.out.println("ID " + currentDuckId + " не подходит по четности. Попытка " + attempt);
+        }
+
+        throw new RuntimeException("Не удалось создать утку с " +
+                (shouldBeEven ? "чётным" : "нечётным") + " ID после 2 попыток");
     }
 
     public static void deleteDuck(TestCaseRunner runner, String duckId) {
@@ -143,25 +178,6 @@ public class BaseDuckTest {
         );
     }
 
-    public static void isDuckIdEven(TestCaseRunner runner) {
-        runner.run(new AbstractTestAction() {
-            @Override
-            public void doExecute(TestContext context) {
-                String duckId = context.getVariable("duckId");
-                long id = Long.parseLong(duckId);
-
-                if (id % 2 == 0) {
-                    System.out.println("Создана утка с чётным id: " + id);
-                    // Можно установить переменную для дальнейшего использования
-                    context.setVariable("duckType", "even");
-                } else {
-                    System.out.println("Создана утка с нечётным id: " + id);
-                    context.setVariable("duckType", "odd");
-                }
-            }
-        });
-    }
-
     public static void validatePropertiesResponse(TestCaseRunner runner, String color, double originalHeight,
                                                   String material, String sound, String wingsState) {
         // сразу умножаем полученную высоту на 100
@@ -182,6 +198,47 @@ public class BaseDuckTest {
         );
     }
 
+    public static void validateDuckIdEvenness(TestCaseRunner runner, boolean shouldBeEven) {
+        runner.run(new AbstractTestAction() {
+            @Override
+            public void doExecute(TestContext context) {
+                String duckId = context.getVariable("duckId");
+                long id = Long.parseLong(duckId);
+                boolean isEven = (id % 2 == 0);
+
+                System.out.println("Проверка чётности ID: " + id);
+                System.out.println("ID чётный: " + isEven);
+                System.out.println("Ожидается чётный: " + shouldBeEven);
+
+                if (isEven != shouldBeEven) {
+                    throw new AssertionError(
+                            String.format("Несоответствие чётности ID! ID: %d, чётный: %s, ожидалось: %s",
+                                    id, isEven, shouldBeEven)
+                    );
+                }
+
+                // Устанавливаем переменную для дальнейшего использования
+                context.setVariable("duckType", isEven ? "even" : "odd");
+
+                System.out.println("Валидация чётности пройдена успешно");
+            }
+        });
+    }
+
+    // получение ID утки как числа
+    public static long getDuckIdAsLong(TestCaseRunner runner) {
+        final long[] idHolder = new long[1];
+
+        runner.run(new AbstractTestAction() {
+            @Override
+            public void doExecute(TestContext context) {
+                String duckId = context.getVariable("duckId");
+                idHolder[0] = Long.parseLong(duckId);
+            }
+        });
+
+        return idHolder[0];
+    }
 
 
 }

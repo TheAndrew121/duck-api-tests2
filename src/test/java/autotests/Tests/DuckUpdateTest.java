@@ -17,7 +17,9 @@ public class DuckUpdateTest extends TestNGCitrusSpringSupport {
     @Test(description = "Изменить цвет и высоту уточки")
     @CitrusTest
     public void testUpdateColorAndHeight(@Optional @CitrusResource TestCaseRunner runner) {
-        String duckId = BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "FIXED");
+
+        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
 
         BaseDuckTest.updateDuck(runner, duckId, "BLACK", "0.555", "rubber", "quack", "FIXED");
 
@@ -38,8 +40,9 @@ public class DuckUpdateTest extends TestNGCitrusSpringSupport {
     @Test(description = "Изменить цвет и звук уточки")
     @CitrusTest
     public void testUpdateColorAndSound(@Optional @CitrusResource TestCaseRunner runner) {
-        // Создаем утку для теста
-        String duckId = BaseDuckTest.createRubberDuck(runner);
+
+        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
 
         // Обновляем утку
         BaseDuckTest.updateDuck(runner, duckId, "blue", "0.1", "rubber", "quack-quack!", "ACTIVE");

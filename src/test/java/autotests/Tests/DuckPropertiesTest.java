@@ -18,7 +18,8 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
     @CitrusTest
     public void testGetPropertiesWood(@Optional @CitrusResource TestCaseRunner runner) {
 
-       String duckId = BaseDuckTest.createDuck(runner, "brown", 0.2, "wood", "quack", "FIXED");
+        BaseDuckTest.createDuck(runner, "brown", 0.2, "wood", "quack", "FIXED");
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "brown", 0.2, "wood", "quack", "FIXED");
 
         BaseDuckTest.getDuckProperties(runner, duckId);
 
@@ -33,8 +34,13 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
                 .body("{}")
         );
 
-        // добавил проверку на чётность/нечётность
-        BaseDuckTest.isDuckIdEven(runner);
+        // получаем id как число
+        long id = BaseDuckTest.getDuckIdAsLong(runner);
+
+        boolean shouldBeEven = (id % 2 == 0);
+
+        // тест упадёт, если будет несоответствие чётности
+        BaseDuckTest.validateDuckIdEvenness(runner, shouldBeEven);
 
         BaseDuckTest.deleteDuck(runner, duckId);
     }
@@ -43,14 +49,23 @@ public class DuckPropertiesTest extends TestNGCitrusSpringSupport {
     @CitrusTest
     public void testGetPropertiesRubber(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = BaseDuckTest.createDuck(runner, "red", 50, "rubber", "quack", "FIXED");
+        BaseDuckTest.createDuck(runner, "red", 50, "rubber", "quack", "FIXED");
+        // валидация ответа сразу после создания, когда ещё высота возвращается корректная
+        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 50, "rubber", "quack", "FIXED");
+
 
         BaseDuckTest.getDuckProperties(runner, duckId);
 
-        // метод валидации ответа, в котором полученная высота сразу умножается на 100
+        // метод валидации ответа при запросе свойств, в котором полученная высота сразу умножается на 100
         BaseDuckTest.validatePropertiesResponse(runner, "red", 50, "rubber", "quack", "FIXED");
 
-        BaseDuckTest.isDuckIdEven(runner);
+        // получаем id как число
+        long id = BaseDuckTest.getDuckIdAsLong(runner);
+
+        boolean shouldBeEven = (id % 2 == 0);
+
+        // тест упадёт, если будет несоответствие чётности
+        BaseDuckTest.validateDuckIdEvenness(runner, shouldBeEven);
 
         BaseDuckTest.deleteDuck(runner, duckId);
     }
