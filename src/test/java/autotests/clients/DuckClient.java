@@ -1,6 +1,7 @@
 package autotests.clients;
 
 import autotests.BaseTest;
+import autotests.Tests.DuckQuackTest;
 import autotests.payloads.CreateRequest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.actions.AbstractTestAction;
@@ -45,6 +46,99 @@ public class DuckClient extends BaseTest {
     public static void validateResponseWithMessage(BaseTest baseTest, @CitrusResource TestCaseRunner runner, HttpStatus status, String message) {
         validateResponse(baseTest, runner, status, "{\"message\":\"" + message + "\"}");
     }
+
+    protected static void extractDuckIdFromResponse(DuckQuackTest duckQuackTest, TestCaseRunner runner) {
+        runner.$(http()
+                .client(duckQuackTest.duckService)
+                .receive()
+                .response(HttpStatus.OK)
+                .message()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract(jsonPath().expression("$.id", "duckId"))
+        );
+    }
+
+
+
+    // проверка чётности id утки
+    protected static void validateDuckIdEvenness(TestCaseRunner runner, boolean shouldBeEven) {
+        runner.run(new AbstractTestAction() {
+            @Override
+            public void doExecute(TestContext context) {
+                String duckId = context.getVariable("duckId");
+                long id = Long.parseLong(duckId);
+                boolean isEven = id % 2 == 0;
+
+                System.out.println("Проверка чётности ID: " + id);
+                System.out.println("ID чётный: " + isEven);
+                System.out.println("Ожидается чётный: " + shouldBeEven);
+
+                if (isEven != shouldBeEven) {
+                    throw new AssertionError(
+                            String.format("Несоответствие чётности ID! ID: %d, чётный: %s, ожидалось: %s",
+                                    id, isEven, shouldBeEven)
+                    );
+                }
+
+                System.out.println("Валидация чётности пройдена успешно");
+            }
+        });
+    }
+
+
+    protected static void validateQuackResponse(DuckQuackTest duckQuackTest, TestCaseRunner runner, String expectedSound) {
+        String expectedBody = "{\"sound\":\"" + expectedSound + "\"}";
+        runner.$(http()
+                .client(duckQuackTest.duckService)
+                .receive()
+                .response(HttpStatus.OK)
+                .message()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(expectedBody)
+        );
+    }
+
+    // специальный метод для создания утки с гарантированно чётным или нечётным id
+    protected static String createDuckWithCertainID(DuckQuackTest duckQuackTest, TestCaseRunner runner, TestContext context,
+                                                    boolean shouldBeEven, String sound) {
+        for (int attempt = 1; attempt <= 2; attempt++) {
+
+            CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", sound, "ACTIVE");
+            duckQuackTest.createDuck(runner, req);
+
+            // извлечение id
+            DuckClient.extractDuckIdFromResponse(duckQuackTest, runner);
+
+            // проверяем чётность id
+            runner.run(new AbstractTestAction() {
+                @Override
+                public void doExecute(TestContext ctx) {
+                    String duckId = ctx.getVariable("duckId");
+                    long id = Long.parseLong(duckId);
+                    ctx.setVariable("isIdEven", id % 2 == 0);
+                    ctx.setVariable("currentDuckId", duckId);
+                }
+            });
+
+            boolean isEven = Boolean.parseBoolean(context.getVariable("isIdEven"));
+            String currentDuckId = context.getVariable("currentDuckId");
+
+            if (isEven == shouldBeEven) {
+                System.out.println("Создана утка с " + (shouldBeEven ? "чётным" : "нечётным") +
+                        " ID: " + currentDuckId + " (попытка: " + attempt + ")");
+                return currentDuckId;
+            }
+
+            duckQuackTest.deleteDuck(runner, currentDuckId);
+            System.out.println("ID " + currentDuckId + " не подходит по четности. Попытка " + attempt);
+        }
+
+        throw new RuntimeException("Не удалось создать утку с " +
+                (shouldBeEven ? "чётным" : "нечётным") + " ID после 2 попыток");
+    }
+
+
+
 
     // новый createDuck принимает модель запроса и отправляет json body.
     public void createDuck(@CitrusResource TestCaseRunner runner, CreateRequest request) {
@@ -175,28 +269,5 @@ public class DuckClient extends BaseTest {
         createDuck(runner, request);
         return extractIdFromResponse(this, runner);
     }
-
-    // метод проверки id на чётность
-    public static void isDuckIdEven(TestCaseRunner runner) {
-        runner.run(new AbstractTestAction() {
-            @Override
-            public void doExecute(TestContext context) {
-                String duckId = context.getVariable("duckId");
-                long id = Long.parseLong(duckId);
-
-                if (id % 2 == 0) {
-                    System.out.println("Создана утка с чётным id: " + id);
-                    // Можно установить переменную для дальнейшего использования
-                    context.setVariable("duckType", "even");
-                } else {
-                    System.out.println("Создана утка с нечётным id: " + id);
-                    context.setVariable("duckType", "odd");
-                }
-            }
-        });
-
-
-
-    };
 
 }
