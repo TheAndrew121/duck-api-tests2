@@ -2,9 +2,11 @@ package autotests.payloads;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Setter
 @Getter
+@Accessors(fluent = true)
 public class CreateRequest {
     private String color;
     private double height;

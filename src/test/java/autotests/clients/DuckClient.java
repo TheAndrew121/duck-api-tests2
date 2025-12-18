@@ -1,16 +1,14 @@
 package autotests.clients;
 
 import autotests.BaseTest;
-import autotests.Tests.DuckQuackTest;
-import autotests.payloads.CreateRequest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.actions.AbstractTestAction;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.context.TestContext;
+import io.qameta.allure.Step;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static com.consol.citrus.dsl.JsonPathSupport.jsonPath;
@@ -18,136 +16,34 @@ import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckClient extends BaseTest {
 
+    // теперь тут только HTTP-операции, валидация ответов, работа с payload-моделями
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String extractIdFromResponse(BaseTest baseTest, @CitrusResource TestCaseRunner runner) {
+    @Step("Создаём утку через API")
+    public void createDuck(@CitrusResource TestCaseRunner runner, String color, double height, String material,
+                           String sound, String wingsState) {
         runner.$(http()
-                .client(baseTest.duckService)
-                .receive()
-                .response(HttpStatus.OK)
+                .client(duckService)
+                .send()
+                .post(BaseTest.CREATE_DUCK)
                 .message()
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .extract(jsonPath().expression("$.id", "duckId"))
-        );
-        return "${duckId}";
-    }
-
-    public static void validateResponse(BaseTest baseTest, @CitrusResource TestCaseRunner runner, HttpStatus status, String expectedBody) {
-        runner.$(http()
-                .client(baseTest.duckService)
-                .receive()
-                .response(status)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(expectedBody)
+                .body(String.format(
+                        "{\"color\":\"%s\",\"height\":%s,\"material\":\"%s\",\"sound\":\"%s\",\"wingsState\":\"%s\"}",
+                        color, height, material, sound, wingsState
+                ))
         );
     }
 
-    public static void validateResponseWithMessage(BaseTest baseTest, @CitrusResource TestCaseRunner runner, HttpStatus status, String message) {
-        validateResponse(baseTest, runner, status, "{\"message\":\"" + message + "\"}");
-    }
-
-    protected static void extractDuckIdFromResponse(DuckQuackTest duckQuackTest, TestCaseRunner runner) {
-        runner.$(http()
-                .client(duckQuackTest.duckService)
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .extract(jsonPath().expression("$.id", "duckId"))
-        );
-    }
-
-
-
-    // проверка чётности id утки
-    protected static void validateDuckIdEvenness(TestCaseRunner runner, boolean shouldBeEven) {
-        runner.run(new AbstractTestAction() {
-            @Override
-            public void doExecute(TestContext context) {
-                String duckId = context.getVariable("duckId");
-                long id = Long.parseLong(duckId);
-                boolean isEven = id % 2 == 0;
-
-                System.out.println("Проверка чётности ID: " + id);
-                System.out.println("ID чётный: " + isEven);
-                System.out.println("Ожидается чётный: " + shouldBeEven);
-
-                if (isEven != shouldBeEven) {
-                    throw new AssertionError(
-                            String.format("Несоответствие чётности ID! ID: %d, чётный: %s, ожидалось: %s",
-                                    id, isEven, shouldBeEven)
-                    );
-                }
-
-                System.out.println("Валидация чётности пройдена успешно");
-            }
-        });
-    }
-
-
-    protected static void validateQuackResponse(DuckQuackTest duckQuackTest, TestCaseRunner runner, String expectedSound) {
-        String expectedBody = "{\"sound\":\"" + expectedSound + "\"}";
-        runner.$(http()
-                .client(duckQuackTest.duckService)
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(expectedBody)
-        );
-    }
-
-    // специальный метод для создания утки с гарантированно чётным или нечётным id
-    protected static String createDuckWithCertainID(DuckQuackTest duckQuackTest, TestCaseRunner runner, TestContext context,
-                                                    boolean shouldBeEven, String sound) {
-        for (int attempt = 1; attempt <= 2; attempt++) {
-
-            CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", sound, "ACTIVE");
-            duckQuackTest.createDuck(runner, req);
-
-            // извлечение id
-            DuckClient.extractDuckIdFromResponse(duckQuackTest, runner);
-
-            // проверяем чётность id
-            runner.run(new AbstractTestAction() {
-                @Override
-                public void doExecute(TestContext ctx) {
-                    String duckId = ctx.getVariable("duckId");
-                    long id = Long.parseLong(duckId);
-                    ctx.setVariable("isIdEven", id % 2 == 0);
-                    ctx.setVariable("currentDuckId", duckId);
-                }
-            });
-
-            boolean isEven = Boolean.parseBoolean(context.getVariable("isIdEven"));
-            String currentDuckId = context.getVariable("currentDuckId");
-
-            if (isEven == shouldBeEven) {
-                System.out.println("Создана утка с " + (shouldBeEven ? "чётным" : "нечётным") +
-                        " ID: " + currentDuckId + " (попытка: " + attempt + ")");
-                return currentDuckId;
-            }
-
-            duckQuackTest.deleteDuck(runner, currentDuckId);
-            System.out.println("ID " + currentDuckId + " не подходит по четности. Попытка " + attempt);
-        }
-
-        throw new RuntimeException("Не удалось создать утку с " +
-                (shouldBeEven ? "чётным" : "нечётным") + " ID после 2 попыток");
-    }
-
-
-
-
-    // новый createDuck принимает модель запроса и отправляет json body.
-    public void createDuck(@CitrusResource TestCaseRunner runner, CreateRequest request) {
+    @Step("Создаем утку через модель запроса")
+    public void createDuck(@CitrusResource TestCaseRunner runner, autotests.payloads.CreateRequest request) {
         try {
             String json = objectMapper.writeValueAsString(request);
             runner.$(http()
                     .client(duckService)
                     .send()
-                    .post("/api/duck/create")
+                    .post(BaseTest.CREATE_DUCK)
                     .message()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(json)
@@ -157,53 +53,70 @@ public class DuckClient extends BaseTest {
         }
     }
 
-    // метод из прошлой домашки пока оставлю
+    // метод с прошлой домашки
+    @Step("Создаем утку и извлекаем ID")
     public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, String color, double height,
                                          String material, String sound, String wingsState) {
         createDuck(runner, color, height, material, sound, wingsState);
         return extractIdFromResponse(this, runner);
     }
 
-    public void createDuck(@CitrusResource TestCaseRunner runner, String color, double height, String material,
-                           String sound, String wingsState) {
-        super.createDuck(runner, color, height, material, sound, wingsState);
+    // метод с прошлой домашки
+    @Step("Создаём утку и извлекаем ID через модель запроса")
+    public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, autotests.payloads.CreateRequest request) {
+        createDuck(runner, request);
+        return extractIdFromResponse(runner);
     }
 
+    @Step("Удаляем утку")
+    public void deleteDuck(@CitrusResource TestCaseRunner runner, String duckId) {
+        runner.$(http()
+                .client(duckService)
+                .send()
+                .delete(BaseTest.DELETE_DUCK)
+                .queryParam("id", duckId)
+        );
+    }
+
+    @Step("Fly")
     public void flyDuck(@CitrusResource TestCaseRunner runner, String duckId) {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/fly")
+                .get(BaseTest.FLY_DUCK)
                 .queryParam("id", duckId)
         );
     }
 
+    @Step("Swim")
     public void swimDuck(@CitrusResource TestCaseRunner runner, String duckId) {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/swim")
+                .get(BaseTest.SWIM_DUCK)
                 .queryParam("id", duckId)
         );
     }
 
+    @Step("Quack")
     public void quackDuck(@CitrusResource TestCaseRunner runner, String duckId, int repetitionCount, int soundCount) {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/quack")
+                .get(BaseTest.QUACK_DUCK)
                 .queryParam("id", duckId)
                 .queryParam("repetitionCount", String.valueOf(repetitionCount))
                 .queryParam("soundCount", String.valueOf(soundCount))
         );
     }
 
+    @Step("Update")
     public void updateDuck(@CitrusResource TestCaseRunner runner, String duckId, String color, String height,
                            String material, String sound, String wingsState) {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .put("/api/duck/update")
+                .put(BaseTest.UPDATE_DUCK)
                 .queryParam("id", duckId)
                 .queryParam("color", color)
                 .queryParam("height", height)
@@ -213,24 +126,17 @@ public class DuckClient extends BaseTest {
         );
     }
 
+    @Step("Get Properties")
     public void getDuckProperties(@CitrusResource TestCaseRunner runner, String duckId) {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/properties")
+                .get(BaseTest.GET_PROPERTIES)
                 .queryParam("id", duckId)
         );
     }
 
-    public void deleteDuck(@CitrusResource TestCaseRunner runner, String duckId) {
-        super.deleteDuck(runner, duckId);
-    }
-
-
-
-    // новые методы для 2 части 29 домашки
-
-    // 1) валидация через String
+    @Step("Валидируем ответ через строку")
     public void validateResponseFromString(@CitrusResource TestCaseRunner runner, HttpStatus status, String expectedBody) {
         runner.$(http()
                 .client(duckService)
@@ -242,7 +148,7 @@ public class DuckClient extends BaseTest {
         );
     }
 
-    // 2) валидация через ресурс
+    @Step("Валидируем ответ через ресурс")
     public void validateResponseFromResource(@CitrusResource TestCaseRunner runner, HttpStatus status, String resourcePath) {
         runner.$(http()
                 .client(duckService)
@@ -254,7 +160,7 @@ public class DuckClient extends BaseTest {
         );
     }
 
-    // 3) валидация через payload-модель: сериализуем модель в json и сравниваем как строку.
+    @Step("Валидируем ответ через payload-модель")
     public void validateResponseFromPayload(@CitrusResource TestCaseRunner runner, HttpStatus status, Object expectedPayload) {
         try {
             String json = objectMapper.writeValueAsString(expectedPayload);
@@ -264,10 +170,51 @@ public class DuckClient extends BaseTest {
         }
     }
 
-    // для создания утки и получения id через модель запроса
-    public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, CreateRequest request) {
-        createDuck(runner, request);
-        return extractIdFromResponse(this, runner);
+    // методы для извлечения данных из ответов
+    @Step("Извлекаем ID из ответа")
+    public String extractIdFromResponse(@CitrusResource TestCaseRunner runner) {
+        runner.$(http()
+                .client(duckService)
+                .receive()
+                .response(HttpStatus.OK)
+                .message()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract(com.consol.citrus.dsl.JsonPathSupport.jsonPath()
+                        .expression("$.id", "duckId"))
+        );
+        return super.extractFromContext(runner, "duckId");
+    }
+
+    @Step("Проверка id утки на чётность/нечётность")
+    public void validateDuckIdParityPR(@CitrusResource TestCaseRunner runner, TestContext context,
+                                       String duckId, boolean shouldBeEven) {
+        long id = Long.parseLong(duckId);
+        boolean isEven = id % 2 == 0;
+
+        System.out.println("Проверка чётности ID: " + id);
+        System.out.println("ID чётный: " + isEven);
+        System.out.println("Ожидается чётный: " + shouldBeEven);
+
+        if (isEven != shouldBeEven) {
+            throw new AssertionError(
+                    String.format("Несоответствие чётности ID! ID: %d, чётный: %s, ожидалось: %s",
+                            id, isEven, shouldBeEven)
+            );
+        }
+
+        System.out.println("Валидация чётности пройдена успешно");
+    }
+
+    public static String getActualIdFromTemplate(TestCaseRunner runner, TestContext context, String duckIdTemplate) {
+        if (duckIdTemplate.startsWith("${") && duckIdTemplate.endsWith("}")) {
+            String variableName = duckIdTemplate.substring(2, duckIdTemplate.length() - 1);
+            return context.getVariable(variableName);
+        }
+        return duckIdTemplate;
+    }
+
+    public DuckClient() {
+        super();
     }
 
 }
