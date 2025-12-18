@@ -1,6 +1,7 @@
 package autotests.tests;
 
 import autotests.clients.DuckClient;
+import autotests.clients.DuckClientDB;
 import autotests.payloads.DeleteResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
@@ -20,9 +21,9 @@ public class DuckDeleteTest extends DuckClient {
     @CitrusTest
     public void testDeleteDuckDataBaseOnly(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = createDuckInDatabase(runner,"yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner,"yellow", 0.121, "rubber", "quack", "ACTIVE");
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
 
         validateDuckNotExistsInDatabase(runner, duckId);
 
@@ -33,9 +34,9 @@ public class DuckDeleteTest extends DuckClient {
     public void testDeleteDuckStringValidation(@Optional @CitrusResource TestCaseRunner runner) {
 
         // создание через БД, удаление старым способом, иначе название теста не будет соответствовать самому тесту
-        String duckId = createDuckInDatabase(runner,"yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner,"yellow", 0.121, "rubber", "quack", "ACTIVE");
 
-        deleteDuck(runner, duckId);
+        deleteDuck(this, runner, duckId);
 
         validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
@@ -45,9 +46,9 @@ public class DuckDeleteTest extends DuckClient {
     public void testDeleteDuckResourceValidation(@Optional @CitrusResource TestCaseRunner runner) {
 
         // создание через БД, удаление старым способом, иначе название теста не будет соответствовать самому тесту
-        String duckId = createDuckInDatabase(runner,"brown", 0.2, "wood", "quack", "FIXED");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner,"brown", 0.2, "wood", "quack", "FIXED");
 
-        deleteDuck(runner, duckId);
+        deleteDuck(this, runner, duckId);
 
         validateResponseFromResource(runner, HttpStatus.OK, "DuckDeleteTest/deleteResponse.json");
     }
@@ -57,9 +58,9 @@ public class DuckDeleteTest extends DuckClient {
     public void testDeleteDuckPayloadValidation(@Optional @CitrusResource TestCaseRunner runner) {
 
         // создание через БД, удаление старым способом, иначе название теста не будет соответствовать самому тесту
-        String duckId = createDuckInDatabase(runner,"red", 50, "rubber", "quack", "FIXED");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner,"red", 50, "rubber", "quack", "FIXED");
 
-        deleteDuck(runner, duckId);
+        deleteDuck(this, runner, duckId);
 
         // через payload-модель
         DeleteResponse expectedResponse = new DeleteResponse("Duck is deleted");

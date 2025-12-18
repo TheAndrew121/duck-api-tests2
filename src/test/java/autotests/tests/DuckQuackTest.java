@@ -1,17 +1,15 @@
 package autotests.tests;
 
 import autotests.clients.DuckClient;
+import autotests.clients.DuckClientDB;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.actions.AbstractTestAction;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.context.TestContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
-
-import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckQuackTest extends DuckClient {
 
@@ -31,7 +29,7 @@ public class DuckQuackTest extends DuckClient {
 
         validateResponseFromString(runner, HttpStatus.OK, "{\"sound\":\"" + expectedSound + "\"}");
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
     }
 
     @Test(description = "Крякание утки с нечётным id (создание через БД)")
@@ -49,7 +47,7 @@ public class DuckQuackTest extends DuckClient {
 
         validateResponseFromString(runner, HttpStatus.OK, "{\"sound\":\"" + expectedSound + "\"}");
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
     }
 
 
@@ -57,7 +55,7 @@ public class DuckQuackTest extends DuckClient {
                                                   boolean shouldBeEven, String sound) {
         for (int attempt = 1; attempt <= 2; attempt++) {
 
-            String duckIdTemplate = createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+            String duckIdTemplate = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
             String actualDuckId = getActualDuckIdFromContext(context, duckIdTemplate);
 

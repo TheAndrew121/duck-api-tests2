@@ -1,6 +1,7 @@
 package autotests.tests;
 
 import autotests.clients.DuckClient;
+import autotests.clients.DuckClientDB;
 import autotests.payloads.PropertiesResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
@@ -31,7 +32,7 @@ public class DuckPropertiesTest extends DuckClient {
 
         validateDuckInDatabase(runner, duckId, "brown", "0.2", "wood", "quack", "FIXED");
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
         validateDuckNotExistsInDatabase(runner, duckId);
     }
 
@@ -51,7 +52,7 @@ public class DuckPropertiesTest extends DuckClient {
 
         validateDuckInDatabase(runner, duckId, "red", "50.0", "rubber", "quack", "FIXED");
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
         validateDuckNotExistsInDatabase(runner, duckId);
     }
 
@@ -59,7 +60,7 @@ public class DuckPropertiesTest extends DuckClient {
     private String createWoodDuckWithEvenId(TestCaseRunner runner, TestContext context) {
         for (int attempt = 1; attempt <= 2; attempt++) {
 
-            String duckIdTemplate = createDuckInDatabase(runner, "brown", 0.2, "wood", "quack", "FIXED");
+            String duckIdTemplate = DuckClientDB.createDuckInDatabase(this, runner, "brown", 0.2, "wood", "quack", "FIXED");
 
             String actualDuckId = getActualIdFromTemplate(runner, context, duckIdTemplate);
 
@@ -80,7 +81,7 @@ public class DuckPropertiesTest extends DuckClient {
     private String createRubberDuckWithOddId(TestCaseRunner runner, TestContext context) {
         for (int attempt = 1; attempt <= 2; attempt++) {
 
-            String duckIdTemplate = createDuckInDatabase(runner, "red", 50.0, "rubber", "quack", "FIXED");
+            String duckIdTemplate = DuckClientDB.createDuckInDatabase(this, runner, "red", 50.0, "rubber", "quack", "FIXED");
 
             String actualDuckId = getActualIdFromTemplate(runner, context, duckIdTemplate);
 
@@ -92,7 +93,7 @@ public class DuckPropertiesTest extends DuckClient {
                 return actualDuckId;
             } else {
                 System.out.println("Rubber утка создана с чётным ID: " + actualDuckId + " - удаляем и пробуем снова");
-                deleteDuckFromDatabase(runner, actualDuckId);
+                DuckClientDB.deleteDuckFromDatabase(this, runner, actualDuckId);
             }
         }
 

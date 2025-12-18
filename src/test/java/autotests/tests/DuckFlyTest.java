@@ -1,6 +1,7 @@
 package autotests.tests;
 
 import autotests.clients.DuckClient;
+import autotests.clients.DuckClientDB;
 import autotests.payloads.FlyResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
@@ -19,7 +20,7 @@ public class DuckFlyTest extends DuckClient {
     @CitrusTest
     public void testFlyWithActiveWings(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
         validateDuckInDatabase(runner, duckId);
 
         flyDuck(runner, duckId);
@@ -27,7 +28,7 @@ public class DuckFlyTest extends DuckClient {
         validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"I am flying :)\"}");
 
         // удаляем утку через БД
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
 
         // проверяем, что утка действительно удалилась
         validateDuckNotExistsInDatabase(runner, duckId);
@@ -37,7 +38,7 @@ public class DuckFlyTest extends DuckClient {
     @CitrusTest
     public void testFlyWithFixedWings(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = createDuckInDatabase(runner, "brown", 0.2, "wood", "quack", "FIXED");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "brown", 0.2, "wood", "quack", "FIXED");
         validateDuckInDatabase(runner, duckId);
 
         flyDuck(runner, duckId);
@@ -45,7 +46,7 @@ public class DuckFlyTest extends DuckClient {
         validateResponseFromResource(runner, HttpStatus.OK, "DuckFlyTest/flyFixedResponse.json");
 
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
 
         validateDuckNotExistsInDatabase(runner, duckId);
 
@@ -55,7 +56,7 @@ public class DuckFlyTest extends DuckClient {
     @CitrusTest
     public void testFlyWithUndefinedWings(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
         validateDuckInDatabase(runner, duckId);
 
         flyDuck(runner, duckId);
@@ -64,7 +65,7 @@ public class DuckFlyTest extends DuckClient {
         validateResponseFromPayload(runner, HttpStatus.OK, expectedResponse);
 
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
 
         validateDuckNotExistsInDatabase(runner, duckId);
 

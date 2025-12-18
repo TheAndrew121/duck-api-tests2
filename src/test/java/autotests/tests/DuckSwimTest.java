@@ -1,6 +1,7 @@
 package autotests.tests;
 
 import autotests.clients.DuckClient;
+import autotests.clients.DuckClientDB;
 import autotests.payloads.SwimResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
@@ -21,13 +22,13 @@ public class DuckSwimTest extends DuckClient {
     @CitrusTest
     public void testSwimExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
         swimDuck(runner, duckId);
 
         validateResponseFromResource(runner, HttpStatus.NOT_FOUND, "DuckSwimTest/swimNotFoundResponse.json");
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
         validateDuckNotExistsInDatabase(runner, duckId);
     }
 
@@ -35,8 +36,8 @@ public class DuckSwimTest extends DuckClient {
     @CitrusTest
     public void testSwimNonExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
         // создаём и сразу удаляем утку, чтоб она была несуществующей
-        String duckId = createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
-        deleteDuckFromDatabase(runner, duckId);
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
 
 
         swimDuck(runner, duckId);
@@ -50,14 +51,14 @@ public class DuckSwimTest extends DuckClient {
     @CitrusTest
     public void testSwimExistingDuckStringValidation(@Optional @CitrusResource TestCaseRunner runner) {
 
-        String duckId = createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
         swimDuck(runner, duckId);
 
         // валидация через строку
         validateResponseFromString(runner, HttpStatus.NOT_FOUND, "{\"message\":\"Paws are not found ((((\"}");
 
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
         validateDuckNotExistsInDatabase(runner, duckId);
     }
 }

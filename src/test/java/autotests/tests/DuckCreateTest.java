@@ -1,6 +1,7 @@
 package autotests.tests;
 
 import autotests.clients.DuckClient;
+import autotests.clients.DuckClientDB;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
@@ -17,7 +18,7 @@ public class DuckCreateTest extends DuckClient {
     @CitrusTest
     public void testCreateRubberDuckInDatabase(@Optional @CitrusResource TestCaseRunner runner) {
         // 1 создаём утку в БД
-        String duckId = createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
         // 2 проверяем, что утка действительно создалась в БД
         validateDuckInDatabase(runner, duckId);
@@ -26,7 +27,7 @@ public class DuckCreateTest extends DuckClient {
         validateDuckInDatabase(runner, duckId, "yellow", "0.121", "rubber", "quack", "ACTIVE");
 
         // 4 удаляем утку через БД
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
 
         // 5 проверяем, что утка действительно удалилась
          validateDuckNotExistsInDatabase(runner, duckId);
@@ -36,7 +37,7 @@ public class DuckCreateTest extends DuckClient {
     @CitrusTest
     public void testCreateWoodDuckInDatabase(@Optional @CitrusResource TestCaseRunner runner) {
         // 1 создаём утку в БД
-        String duckId = createDuckInDatabase(runner, "brown", 0.2, "wood", "quack", "FIXED");
+        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "brown", 0.2, "wood", "quack", "FIXED");
 
         // 2 проверяем, что утка действительно создалась в БД
         validateDuckInDatabase(runner, duckId);
@@ -45,7 +46,7 @@ public class DuckCreateTest extends DuckClient {
         validateDuckInDatabase(runner, duckId, "brown", "0.2", "wood", "quack", "FIXED");
 
         // 4 удаляем утку через БД
-        deleteDuckFromDatabase(runner, duckId);
+        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
 
         // 5 проверяем, что утка действительно удалилась
         validateDuckNotExistsInDatabase(runner, duckId);
