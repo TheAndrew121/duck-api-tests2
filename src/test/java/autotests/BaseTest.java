@@ -1,7 +1,9 @@
 package autotests;
 
 import com.consol.citrus.TestCaseRunner;
+import com.consol.citrus.actions.AbstractTestAction;
 import com.consol.citrus.annotations.CitrusResource;
+import com.consol.citrus.context.TestContext;
 import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import io.qameta.allure.Step;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,38 @@ public class BaseTest extends TestNGCitrusSpringSupport {
 
     @Autowired
     protected SingleConnectionDataSource testDb;
+
+    protected static void validateDuckIdParityPR(TestCaseRunner runner, TestContext context,
+                                                 String duckId, boolean shouldBeEven) {
+        runner.run(new AbstractTestAction() {
+            @Override
+            public void doExecute(TestContext ctx) {
+                long id = Long.parseLong(duckId);
+                boolean isEven = id % 2 == 0;
+
+                System.out.println("Проверка чётности ID: " + id);
+                System.out.println("ID чётный: " + isEven);
+                System.out.println("Ожидается чётный: " + shouldBeEven);
+
+                if (isEven != shouldBeEven) {
+                    throw new AssertionError(
+                            String.format("Несоответствие чётности ID! ID: %d, чётный: %s, ожидалось: %s",
+                                    id, isEven, shouldBeEven)
+                    );
+                }
+
+                System.out.println("Валидация чётности пройдена успешно");
+            }
+        });
+    }
+
+    protected static String getActualIdFromTemplate(TestCaseRunner runner, TestContext context, String duckIdTemplate) {
+        if (duckIdTemplate.startsWith("${") && duckIdTemplate.endsWith("}")) {
+            String variableName = duckIdTemplate.substring(2, duckIdTemplate.length() - 1);
+            return context.getVariable(variableName);
+        }
+        return duckIdTemplate;
+    }
 
     @Step("Создаём утку")
     public void createDuck(@CitrusResource TestCaseRunner runner, String color, double height, String material,

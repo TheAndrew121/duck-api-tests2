@@ -1,7 +1,6 @@
 package autotests.clients;
 
 import autotests.tests.DuckPropertiesTest;
-import autotests.tests.DuckQuackTest;
 import autotests.BaseTest;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
@@ -12,46 +11,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static com.consol.citrus.actions.ExecuteSQLAction.Builder.sql;
 import static com.consol.citrus.actions.ExecuteSQLQueryAction.Builder.query;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckClient extends BaseTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @Step("Создаём утку с определённой чётностью через запрос к БД")
-    protected static String createDuckWithParity(DuckQuackTest duckQuackTest, @CitrusResource TestCaseRunner runner, @CitrusResource TestContext context,
-                                                 boolean shouldBeEven, String quackSound, String color, double height,
-                                                 String material, String wingsState) {
-        // получаем текущий максимальный id
-        runner.$(query(duckQuackTest.testDb)
-                .statement("SELECT COALESCE(MAX(id), 0) as max_id FROM DUCK")
-                .extract("MAX_ID", "currentMaxId"));
-
-        long currentMaxId = Long.parseLong(context.getVariable("currentMaxId"));
-        long nextId = currentMaxId + 1;
-
-        // проверяем чётность следующего ID и корректируем при необходимости
-        boolean isEven = (nextId % 2 == 0);
-
-        if (isEven != shouldBeEven) {
-            // если чётность не совпадает, прибавляем 1
-            nextId++;
-        }
-
-        // создаём утку с вычисленным id
-        runner.$(sql(duckQuackTest.testDb)
-                .statement(String.format(
-                        "INSERT INTO DUCK (id, color, height, material, sound, wings_state) " +
-                                "VALUES (%d, '%s', %s, '%s', '%s', '%s')",
-                        nextId, color, height, material, quackSound, wingsState
-                )));
-
-        duckQuackTest.validateDuckInDatabase(runner, String.valueOf(nextId));
-
-        return String.valueOf(nextId);
-    }
 
     @Step("Проверка id утки на чётность/нечётность")
     protected static void validateDuckIdParity(DuckPropertiesTest duckPropertiesTest, @CitrusResource TestCaseRunner runner, @CitrusResource TestContext context, String duckId) {
