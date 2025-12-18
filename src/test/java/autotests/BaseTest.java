@@ -5,88 +5,39 @@ import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import io.qameta.allure.Step;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.test.context.ContextConfiguration;
 
-import static com.consol.citrus.actions.ExecuteSQLQueryAction.Builder.query;
-import static com.consol.citrus.dsl.JsonPathSupport.jsonPath;
-import static com.consol.citrus.http.actions.HttpActionBuilder.http;
-
-@ContextConfiguration(classes = {autotests.config.EndpointConfig.class})
+@ContextConfiguration(classes = {autotests.config.EndpointConfig.class, autotests.config.ClientConfig.class})
 public class BaseTest extends TestNGCitrusSpringSupport {
+
+    // теперь тут только самые базовые методы, в том числе базовые HTTP-запросы
 
     @Autowired
     public com.consol.citrus.http.client.HttpClient duckService;
 
     @Autowired
-    public SingleConnectionDataSource testDb;
+    public org.springframework.jdbc.datasource.SingleConnectionDataSource testDb;
 
-    @Step("Извлекаем ID из ответа")
-    public String extractIdFromResponse(@CitrusResource TestCaseRunner runner) {
-        runner.$(http()
-                .client(duckService)
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .extract(jsonPath().expression("$.id", "duckId"))
-        );
-        return "${duckId}";
+
+    public static final String CREATE_DUCK = "/api/duck/create";
+    public static final String DELETE_DUCK = "/api/duck/delete";
+    public static final String FLY_DUCK = "/api/duck/action/fly";
+    public static final String SWIM_DUCK = "/api/duck/action/swim";
+    public static final String QUACK_DUCK = "/api/duck/action/quack";
+    public static final String UPDATE_DUCK = "/api/duck/update";
+    public static final String GET_PROPERTIES = "/api/duck/action/properties";
+
+
+    public void setDuckService(com.consol.citrus.http.client.HttpClient duckService) {
+        this.duckService = duckService;
     }
 
-    @Step("Валидируем ответ")
-    public void validateResponse(@CitrusResource TestCaseRunner runner, HttpStatus status, String expectedBody) {
-        runner.$(http()
-                .client(duckService)
-                .receive()
-                .response(status)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(expectedBody)
-        );
+    public void setTestDb(org.springframework.jdbc.datasource.SingleConnectionDataSource testDb) {
+        this.testDb = testDb;
     }
 
-    @Step("Валидируем ответ с сообщением")
-    public void validateResponseWithMessage(@CitrusResource TestCaseRunner runner, HttpStatus status, String message) {
-        validateResponse(runner, status, "{\"message\":\"" + message + "\"}");
+    @Step("Извлекаем значение из контекста")
+    public String extractFromContext(@CitrusResource TestCaseRunner runner, String variableName) {
+        return "${" + variableName + "}";
     }
-
-
-    // Методы для работы с БД
-    @Step("Получаем следующий id для утки из БД")
-    public void getNextDuckIdFromDatabase(@CitrusResource TestCaseRunner runner) {
-        // запрашиваем следующий id и сохраняем в переменную
-        runner.$(query(testDb)
-                .statement("SELECT CASE WHEN MAX(id) IS NULL THEN 1 ELSE MAX(id) + 1 END as next_id FROM DUCK")
-                .extract("NEXT_ID", "nextDuckId"));
-    }
-
-    @Step("Проверяем данные утки в БД")
-    public void validateDuckInDatabase(@CitrusResource TestCaseRunner runner, String idVariable, String color,
-                                       String height, String material, String sound, String wingsState) {
-        runner.$(query(testDb)
-                .statement("SELECT * FROM DUCK WHERE ID = " + idVariable)
-                .validate("COLOR", color)
-                .validate("HEIGHT", height)
-                .validate("MATERIAL", material)
-                .validate("SOUND", sound)
-                .validate("WINGS_STATE", wingsState));
-    }
-
-    @Step("Проверяем наличие утки в БД")
-    public void validateDuckInDatabase(@CitrusResource TestCaseRunner runner, String idVariable) {
-        runner.$(query(testDb)
-                .statement("SELECT COUNT(*) as count FROM DUCK WHERE ID = " + idVariable)
-                .validate("COUNT", "1"));
-    }
-
-    @Step("Проверяем отсутствие утки в БД")
-    public void validateDuckNotExistsInDatabase(@CitrusResource TestCaseRunner runner, String idVariable) {
-        runner.$(query(testDb)
-                .statement("SELECT COUNT(*) as count FROM DUCK WHERE ID = " + idVariable)
-                .validate("COUNT", "0"));
-    }
-
 }

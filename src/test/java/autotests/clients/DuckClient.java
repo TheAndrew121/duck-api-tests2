@@ -1,9 +1,7 @@
 package autotests.clients;
 
-import autotests.tests.DuckPropertiesTest;
 import autotests.BaseTest;
 import com.consol.citrus.TestCaseRunner;
-import com.consol.citrus.actions.AbstractTestAction;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.context.TestContext;
 import io.qameta.allure.Step;
@@ -12,87 +10,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static com.consol.citrus.actions.ExecuteSQLQueryAction.Builder.query;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckClient extends BaseTest {
 
+    // теперь тут только HTTP-операции, валидация ответов, работа с payload-моделями
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Step("Проверка id утки на чётность/нечётность")
-    protected static void validateDuckIdParity(DuckPropertiesTest duckPropertiesTest, @CitrusResource TestCaseRunner runner, @CitrusResource TestContext context, String duckId) {
-
-        runner.$(query(duckPropertiesTest.testDb)
-                .statement("SELECT id FROM DUCK WHERE id = " + duckId)
-                .extract("ID", "duckIdValue"));
-
-        String extractedId = context.getVariable("duckIdValue");
-        long idValue = Long.parseLong(extractedId);
-
-        boolean isEven = idValue % 2 == 0;
-
-        if (idValue <= 0) {
-            throw new AssertionError("Invalid duck ID: " + idValue);
-        }
-
-        System.out.println("Duck ID: " + idValue + " is " + (isEven ? "even" : "odd"));
-    }
-
-    protected static void validateDuckIdParityPR(TestCaseRunner runner, TestContext context,
-                                                 String duckId, boolean shouldBeEven) {
-        runner.run(new AbstractTestAction() {
-            @Override
-            public void doExecute(TestContext ctx) {
-                long id = Long.parseLong(duckId);
-                boolean isEven = id % 2 == 0;
-
-                System.out.println("Проверка чётности ID: " + id);
-                System.out.println("ID чётный: " + isEven);
-                System.out.println("Ожидается чётный: " + shouldBeEven);
-
-                if (isEven != shouldBeEven) {
-                    throw new AssertionError(
-                            String.format("Несоответствие чётности ID! ID: %d, чётный: %s, ожидалось: %s",
-                                    id, isEven, shouldBeEven)
-                    );
-                }
-
-                System.out.println("Валидация чётности пройдена успешно");
-            }
-        });
-    }
-
-    protected static String getActualIdFromTemplate(TestCaseRunner runner, TestContext context, String duckIdTemplate) {
-        if (duckIdTemplate.startsWith("${") && duckIdTemplate.endsWith("}")) {
-            String variableName = duckIdTemplate.substring(2, duckIdTemplate.length() - 1);
-            return context.getVariable(variableName);
-        }
-        return duckIdTemplate;
-    }
-
-    @Step("Создаём утку")
-    public static void createDuck(BaseTest baseTest, @CitrusResource TestCaseRunner runner, String color, double height, String material,
-                                  String sound, String wingsState) {
+    @Step("Создаём утку через API")
+    public void createDuck(@CitrusResource TestCaseRunner runner, String color, double height, String material,
+                           String sound, String wingsState) {
         runner.$(http()
-                .client(baseTest.duckService)
+                .client(duckService)
                 .send()
-                .post("/api/duck/create")
+                .post(BaseTest.CREATE_DUCK)
                 .message()
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(String.format(
                         "{\"color\":\"%s\",\"height\":%s,\"material\":\"%s\",\"sound\":\"%s\",\"wingsState\":\"%s\"}",
                         color, height, material, sound, wingsState
                 ))
-        );
-    }
-
-    @Step("Удаляем утку")
-    public static void deleteDuck(BaseTest baseTest, @CitrusResource TestCaseRunner runner, String duckId) {
-        runner.$(http()
-                .client(baseTest.duckService)
-                .send()
-                .delete("/api/duck/delete")
-                .queryParam("id", duckId)
         );
     }
 
@@ -103,7 +41,7 @@ public class DuckClient extends BaseTest {
             runner.$(http()
                     .client(duckService)
                     .send()
-                    .post("/api/duck/create")
+                    .post(BaseTest.CREATE_DUCK)
                     .message()
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(json)
@@ -113,17 +51,29 @@ public class DuckClient extends BaseTest {
         }
     }
 
+    // метод с прошлой домашки
     @Step("Создаем утку и извлекаем ID")
     public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, String color, double height,
                                          String material, String sound, String wingsState) {
-        createDuck(this, runner, color, height, material, sound, wingsState);
+        createDuck(runner, color, height, material, sound, wingsState);
         return extractIdFromResponse(runner);
     }
 
+    // метод с прошлой домашки
     @Step("Создаём утку и извлекаем ID через модель запроса")
     public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, autotests.payloads.CreateRequest request) {
         createDuck(runner, request);
         return extractIdFromResponse(runner);
+    }
+
+    @Step("Удаляем утку")
+    public void deleteDuck(@CitrusResource TestCaseRunner runner, String duckId) {
+        runner.$(http()
+                .client(duckService)
+                .send()
+                .delete(BaseTest.DELETE_DUCK)
+                .queryParam("id", duckId)
+        );
     }
 
     @Step("Fly")
@@ -131,7 +81,7 @@ public class DuckClient extends BaseTest {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/fly")
+                .get(BaseTest.FLY_DUCK)
                 .queryParam("id", duckId)
         );
     }
@@ -141,7 +91,7 @@ public class DuckClient extends BaseTest {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/swim")
+                .get(BaseTest.SWIM_DUCK)
                 .queryParam("id", duckId)
         );
     }
@@ -151,7 +101,7 @@ public class DuckClient extends BaseTest {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/quack")
+                .get(BaseTest.QUACK_DUCK)
                 .queryParam("id", duckId)
                 .queryParam("repetitionCount", String.valueOf(repetitionCount))
                 .queryParam("soundCount", String.valueOf(soundCount))
@@ -164,7 +114,7 @@ public class DuckClient extends BaseTest {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .put("/api/duck/update")
+                .put(BaseTest.UPDATE_DUCK)
                 .queryParam("id", duckId)
                 .queryParam("color", color)
                 .queryParam("height", height)
@@ -179,11 +129,10 @@ public class DuckClient extends BaseTest {
         runner.$(http()
                 .client(duckService)
                 .send()
-                .get("/api/duck/action/properties")
+                .get(BaseTest.GET_PROPERTIES)
                 .queryParam("id", duckId)
         );
     }
-
 
     @Step("Валидируем ответ через строку")
     public void validateResponseFromString(@CitrusResource TestCaseRunner runner, HttpStatus status, String expectedBody) {
@@ -218,4 +167,52 @@ public class DuckClient extends BaseTest {
             throw new RuntimeException("Failed to serialize expected payload", e);
         }
     }
+
+    // методы для извлечения данных из ответов
+    @Step("Извлекаем ID из ответа")
+    public String extractIdFromResponse(@CitrusResource TestCaseRunner runner) {
+        runner.$(http()
+                .client(duckService)
+                .receive()
+                .response(HttpStatus.OK)
+                .message()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract(com.consol.citrus.dsl.JsonPathSupport.jsonPath()
+                        .expression("$.id", "duckId"))
+        );
+        return super.extractFromContext(runner, "duckId");
+    }
+
+    @Step("Проверка id утки на чётность/нечётность")
+    public void validateDuckIdParityPR(@CitrusResource TestCaseRunner runner, TestContext context,
+                                       String duckId, boolean shouldBeEven) {
+        long id = Long.parseLong(duckId);
+        boolean isEven = id % 2 == 0;
+
+        System.out.println("Проверка чётности ID: " + id);
+        System.out.println("ID чётный: " + isEven);
+        System.out.println("Ожидается чётный: " + shouldBeEven);
+
+        if (isEven != shouldBeEven) {
+            throw new AssertionError(
+                    String.format("Несоответствие чётности ID! ID: %d, чётный: %s, ожидалось: %s",
+                            id, isEven, shouldBeEven)
+            );
+        }
+
+        System.out.println("Валидация чётности пройдена успешно");
+    }
+
+    public static String getActualIdFromTemplate(TestCaseRunner runner, TestContext context, String duckIdTemplate) {
+        if (duckIdTemplate.startsWith("${") && duckIdTemplate.endsWith("}")) {
+            String variableName = duckIdTemplate.substring(2, duckIdTemplate.length() - 1);
+            return context.getVariable(variableName);
+        }
+        return duckIdTemplate;
+    }
+
+    public DuckClient() {
+        super();
+    }
+
 }

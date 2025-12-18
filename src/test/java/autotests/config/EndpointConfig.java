@@ -25,4 +25,5 @@ public class EndpointConfig {
         dataSource.setPassword("dev");
         return dataSource;
     }
+
 }

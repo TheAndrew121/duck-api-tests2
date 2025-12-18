@@ -7,6 +7,7 @@ import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
 import io.qameta.allure.Epic;
 import io.qameta.allure.Feature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
@@ -14,41 +15,42 @@ import org.testng.annotations.Test;
 @Feature("Create")
 public class DuckCreateTest extends DuckClient {
 
+    @Autowired
+    private DuckClientDB duckClientDB;
+
     @Test(description = "Создать утку с material = rubber и проверить её наличие в БД")
     @CitrusTest
     public void testCreateRubberDuckInDatabase(@Optional @CitrusResource TestCaseRunner runner) {
         // 1 создаём утку в БД
-        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = duckClientDB.createDuckInDatabase(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
 
         // 2 проверяем, что утка действительно создалась в БД
-        validateDuckInDatabase(runner, duckId);
+        duckClientDB.validateDuckInDatabase(runner, duckId);
 
         // 3 проверяем все данные утки в БД
-        validateDuckInDatabase(runner, duckId, "yellow", "0.121", "rubber", "quack", "ACTIVE");
+        duckClientDB.validateDuckInDatabase(runner, duckId, "yellow", "0.121", "rubber", "quack", "ACTIVE");
 
-        // 4 удаляем утку через БД
-        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
+        duckClientDB.deleteDuckFromDatabase(runner, duckId);
 
         // 5 проверяем, что утка действительно удалилась
-         validateDuckNotExistsInDatabase(runner, duckId);
+        duckClientDB.validateDuckNotExistsInDatabase(runner, duckId);
     }
 
     @Test(description = "Создать утку с material = wood и проверить её наличие в БД")
     @CitrusTest
     public void testCreateWoodDuckInDatabase(@Optional @CitrusResource TestCaseRunner runner) {
         // 1 создаём утку в БД
-        String duckId = DuckClientDB.createDuckInDatabase(this, runner, "brown", 0.2, "wood", "quack", "FIXED");
+        String duckId = duckClientDB.createDuckInDatabase(runner, "brown", 0.2, "wood", "quack", "FIXED");
 
         // 2 проверяем, что утка действительно создалась в БД
-        validateDuckInDatabase(runner, duckId);
+        duckClientDB.validateDuckInDatabase(runner, duckId);
 
         // 3 проверяем все данные утки в БД
-        validateDuckInDatabase(runner, duckId, "brown", "0.2", "wood", "quack", "FIXED");
+        duckClientDB.validateDuckInDatabase(runner, duckId, "brown", "0.2", "wood", "quack", "FIXED");
 
-        // 4 удаляем утку через БД
-        DuckClientDB.deleteDuckFromDatabase(this, runner, duckId);
+        duckClientDB.deleteDuckFromDatabase(runner, duckId);
 
         // 5 проверяем, что утка действительно удалилась
-        validateDuckNotExistsInDatabase(runner, duckId);
+        duckClientDB.validateDuckNotExistsInDatabase(runner, duckId);
     }
 }
