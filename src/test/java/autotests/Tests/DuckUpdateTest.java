@@ -1,63 +1,47 @@
 package autotests.Tests;
 
-import autotests.BaseDuckTest;
+import autotests.clients.DuckClient;
+import autotests.payloads.CreateRequest;
+import autotests.payloads.UpdateResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
-import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
-import static com.consol.citrus.http.actions.HttpActionBuilder.http;
+public class DuckUpdateTest extends DuckClient {
 
-public class DuckUpdateTest extends TestNGCitrusSpringSupport {
-
-    @Test(description = "Изменить цвет и высоту уточки")
+    @Test(description = "Изменить цвет и высоту уточки (валидация через payload-модель)")
     @CitrusTest
     public void testUpdateColorAndHeight(@Optional @CitrusResource TestCaseRunner runner) {
 
-        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
-        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "FIXED");
+        String duckId = createDuckAndExtractId(runner, req);
 
-        BaseDuckTest.updateDuck(runner, duckId, "BLACK", "0.555", "rubber", "quack", "FIXED");
+        updateDuck(runner, duckId, "BLACK", "0.555", "rubber", "quack", "FIXED");
 
-        // Проверяем ответ
-        runner.$(http()
-                .client("http://localhost:2222")
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(String.format("{\"message\":\"Duck with id = %s is updated\"}", duckId))
-        );
+        // через payload-модель
+        UpdateResponse expectedResponse = new UpdateResponse(String.format("Duck with id = %s is updated", duckId));
+        validateResponseFromPayload(runner, HttpStatus.OK, expectedResponse);
 
-        // Удаляем утку после теста
-        BaseDuckTest.deleteDuck(runner, duckId);
+        deleteDuck(runner, duckId);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    @Test(description = "Изменить цвет и звук уточки")
+    @Test(description = "Изменить цвет и звук уточки (валидация через ресурс)")
     @CitrusTest
     public void testUpdateColorAndSound(@Optional @CitrusResource TestCaseRunner runner) {
 
-        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
-        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = createDuckAndExtractId(runner, req);
 
-        // Обновляем утку
-        BaseDuckTest.updateDuck(runner, duckId, "blue", "0.1", "rubber", "quack-quack!", "ACTIVE");
+        updateDuck(runner, duckId, "blue", "0.1", "rubber", "quack-quack!", "ACTIVE");
 
-        // Проверяем ответ
-        runner.$(http()
-                .client("http://localhost:2222")
-                .receive()
-                .response(HttpStatus.OK)
-                .message()
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .body(String.format("{\"message\":\"Duck with id = %s is updated\"}", duckId))
-        );
+        // через ресурс
+        validateResponseFromResource(runner, HttpStatus.OK, "DuckUpdateTest/updateResponse.json");
 
-        // Удаляем утку после теста
-        BaseDuckTest.deleteDuck(runner, duckId);
+        deleteDuck(runner, duckId);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 }

@@ -1,58 +1,59 @@
 package autotests.Tests;
 
-import autotests.BaseDuckTest;
+import autotests.clients.DuckClient;
+import autotests.payloads.CreateRequest;
+import autotests.payloads.FlyResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
-import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import org.springframework.http.HttpStatus;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
-public class DuckFlyTest extends TestNGCitrusSpringSupport {
+public class DuckFlyTest extends DuckClient {
 
-    @Test(description = "Существующий id с ACTIVE крыльями")
+    @Test(description = "Существующий id с ACTIVE крыльями (валидация через строку)")
     @CitrusTest
     public void testFlyWithActiveWings(@Optional @CitrusResource TestCaseRunner runner) {
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = createDuckAndExtractId(runner, req);
 
-        BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
-        String duckId = BaseDuckTest.validateDuckCreation(runner, "yellow", 0.121, "rubber", "quack", "ACTIVE");
+        flyDuck(runner, duckId);
 
-        BaseDuckTest.flyDuck(runner, duckId);
+        // валидация через строку
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"I am flying :)\"}");
 
-        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.OK, "I am flying :)");
-
-        BaseDuckTest.deleteDuck(runner, duckId);
+        deleteDuck(runner, duckId);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    @Test(description = "Существующий id со FIXED крыльями")
+    @Test(description = "Существующий id со FIXED крыльями (валидация через ресурс)")
     @CitrusTest
     public void testFlyWithFixedWings(@Optional @CitrusResource TestCaseRunner runner) {
 
-        BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "FIXED");
-        String duckId = BaseDuckTest.validateDuckCreation(runner, "yellow", 0.121, "rubber", "quack", "FIXED");
+        CreateRequest req = new CreateRequest("brown", 0.2, "wood", "quack", "FIXED");
+        String duckId = createDuckAndExtractId(runner, req);
 
-        BaseDuckTest.flyDuck(runner, duckId);
+        flyDuck(runner, duckId);
 
-        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.OK, "I can not fly :C");
+        validateResponseFromResource(runner, HttpStatus.OK, "DuckFlyTest/flyFixedResponse.json");
 
-        BaseDuckTest.deleteDuck(runner, duckId);
+        deleteDuck(runner, duckId);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    @Test(description = "Существующий id с UNDEFINED крыльями")
+    @Test(description = "Существующий id с UNDEFINED крыльями (валидация через payload-модель)")
     @CitrusTest
     public void testFlyWithUndefinedWings(@Optional @CitrusResource TestCaseRunner runner) {
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "UNDEFINED");
+        String duckId = createDuckAndExtractId(runner, req);
 
-        BaseDuckTest.createDuck(runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
-        String duckId = BaseDuckTest.validateDuckCreation(runner, "yellow", 0.121, "rubber", "quack", "UNDEFINED");
+        flyDuck(runner, duckId);
 
-        // Тестируем полет
-        BaseDuckTest.flyDuck(runner, duckId);
+        FlyResponse expectedResponse = new FlyResponse("Wings are not detected :(");
+        validateResponseFromPayload(runner, HttpStatus.OK, expectedResponse);
 
-        // Проверяем ответ
-        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.OK, "Wings are not detected :(");
-
-        // Удаляем утку после теста
-        BaseDuckTest.deleteDuck(runner, duckId);
+        deleteDuck(runner, duckId);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 }

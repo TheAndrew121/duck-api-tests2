@@ -1,15 +1,14 @@
 package autotests.Tests;
 
-import autotests.BaseDuckTest;
+import autotests.clients.DuckClient;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
 import com.consol.citrus.context.TestContext;
-import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
-public class DuckQuackTest extends TestNGCitrusSpringSupport {
+public class DuckQuackTest extends DuckClient {
 
     @Test(description = "Крякание утки с чётным id")
     @CitrusTest
@@ -20,13 +19,19 @@ public class DuckQuackTest extends TestNGCitrusSpringSupport {
         int repetitionCount = 2; // количество повторений
 
         // создаём утку с гарантированно чётным id
-        String duckId = BaseDuckTest.createDuckWithCertainID(runner, context, true);
+        String duckId = createDuckWithCertainID(this, runner, context, true, "moo");
 
-        BaseDuckTest.quackDuck(runner, duckId, repetitionCount, soundCount);
+        // тестируем кряканье
+        quackDuck(runner, duckId, repetitionCount, soundCount);
 
-        BaseDuckTest.validateResponseWithSound(runner, "moo-moo, moo-moo");
+        // проверяем ответ
+        validateQuackResponse(this, runner, "moo-moo, moo-moo");
 
-        BaseDuckTest.deleteDuck(runner, duckId);
+        // проверяем, что ID действительно чётный
+        validateDuckIdEvenness(runner, true);
+
+        // удаляем утку
+        deleteDuck(runner, duckId);
     }
 
     @Test(description = "Крякание утки с нечётным id")
@@ -38,12 +43,16 @@ public class DuckQuackTest extends TestNGCitrusSpringSupport {
         int repetitionCount = 2; // количество повторений
 
         // создаём утку с гарантированно нечётным id
-        String duckId = BaseDuckTest.createDuckWithCertainID(runner, context, false);
+        String duckId = createDuckWithCertainID(this, runner, context, false, "quack");
 
-        BaseDuckTest.quackDuck(runner, duckId, repetitionCount, soundCount);
+        quackDuck(runner, duckId, repetitionCount, soundCount);
 
-        BaseDuckTest.validateResponseWithSound(runner, "quack-quack, quack-quack");
+        validateQuackResponse(this, runner, "quack-quack, quack-quack");
 
-        BaseDuckTest.deleteDuck(runner, duckId);
+        // проверяем, что ID действительно нечётный
+        validateDuckIdEvenness(runner, false);
+
+        deleteDuck(runner, duckId);
     }
+
 }

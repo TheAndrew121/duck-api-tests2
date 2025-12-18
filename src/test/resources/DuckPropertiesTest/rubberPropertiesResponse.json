@@ -1,0 +1,7 @@
+{
+  "color": "red",
+  "height": 5000.0,
+  "material": "rubber",
+  "sound": "quack",
+  "wingsState": "FIXED"
+}

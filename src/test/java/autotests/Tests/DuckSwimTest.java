@@ -1,42 +1,61 @@
 package autotests.Tests;
 
-import autotests.BaseDuckTest;
+import autotests.clients.DuckClient;
+import autotests.payloads.CreateRequest;
+import autotests.payloads.SwimResponse;
 import com.consol.citrus.TestCaseRunner;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.annotations.CitrusTest;
-import com.consol.citrus.testng.spring.TestNGCitrusSpringSupport;
 import org.springframework.http.HttpStatus;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Test;
 
-// TODO: SHIFT-AQA-2
-public class DuckSwimTest extends TestNGCitrusSpringSupport {
+// TODO: SHIFT-AQA-3
+public class DuckSwimTest extends DuckClient {
 
-    @Test(description = "Существующий id")
+    @Test(description = "Существующий id (валидация через ресурс)")
     @CitrusTest
     public void testSwimExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = createDuckAndExtractId(runner, req);
 
-        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
-        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        swimDuck(runner, duckId);
 
-        BaseDuckTest.swimDuck(runner, duckId);
+        validateResponseFromResource(runner, HttpStatus.NOT_FOUND, "DuckSwimTest/swimNotFoundResponse.json");
 
-        // ожидаем NOT_FOUND, чтобы тест был зелёным, хотя утка существует и должна лететь
-        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
-
-        BaseDuckTest.deleteDuck(runner, duckId);
+        deleteDuck(runner, duckId);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 
-    @Test(description = "Несуществующий id")
+    @Test(description = "Несуществующий id (валидация через payload-модель)")
     @CitrusTest
     public void testSwimNonExistingDuck(@Optional @CitrusResource TestCaseRunner runner) {
 
-        BaseDuckTest.createDuck(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
-        String duckId = BaseDuckTest.validateDuckCreation(runner, "red", 0.121, "rubber", "quack", "ACTIVE");
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = createDuckAndExtractId(runner, req);
 
-        BaseDuckTest.deleteDuck(runner, duckId);
+        // удаляем, потом плаваем, чтобы утка была точно несуществующей
+        deleteDuck(runner, duckId);
 
-        BaseDuckTest.swimDuck(runner, duckId);
-        BaseDuckTest.validateResponseWithMessage(runner, HttpStatus.NOT_FOUND, "Paws are not found ((((");
+        swimDuck(runner, duckId);
+        // Валидация через payload-модель
+        SwimResponse expectedResponse = new SwimResponse("Paws are not found ((((");
+        validateResponseFromPayload(runner, HttpStatus.NOT_FOUND, expectedResponse);
+    }
+
+    @Test(description = "Существующий id (валидация через строку)")
+    @CitrusTest
+    public void testSwimExistingDuckStringValidation(@Optional @CitrusResource TestCaseRunner runner) {
+
+        CreateRequest req = new CreateRequest("yellow", 0.121, "rubber", "quack", "ACTIVE");
+        String duckId = createDuckAndExtractId(runner, req);
+
+        swimDuck(runner, duckId);
+
+        // валидация через строку
+        validateResponseFromString(runner, HttpStatus.NOT_FOUND, "{\"message\":\"Paws are not found ((((\"}");
+
+        deleteDuck(runner, duckId);
+        validateResponseFromString(runner, HttpStatus.OK, "{\"message\":\"Duck is deleted\"}");
     }
 }
