@@ -2,6 +2,7 @@ package autotests.clients;
 
 import autotests.BaseTest;
 import com.consol.citrus.TestCaseRunner;
+import com.consol.citrus.actions.AbstractTestAction;
 import com.consol.citrus.annotations.CitrusResource;
 import com.consol.citrus.context.TestContext;
 import io.qameta.allure.Step;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static com.consol.citrus.dsl.JsonPathSupport.jsonPath;
 import static com.consol.citrus.http.actions.HttpActionBuilder.http;
 
 public class DuckClient extends BaseTest {
@@ -56,7 +58,7 @@ public class DuckClient extends BaseTest {
     public String createDuckAndExtractId(@CitrusResource TestCaseRunner runner, String color, double height,
                                          String material, String sound, String wingsState) {
         createDuck(runner, color, height, material, sound, wingsState);
-        return extractIdFromResponse(runner);
+        return extractIdFromResponse(this, runner);
     }
 
     // метод с прошлой домашки
